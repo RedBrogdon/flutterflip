@@ -1,0 +1,12 @@
+out/
+artifacts/
+build/
+flutter-intellij.jar
+packages
+.DS_Store
+.packages
+pubspec.lock
+.pub/
+.idea/
+.vscode/
+material-design-icons/
