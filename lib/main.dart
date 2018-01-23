@@ -158,7 +158,7 @@ class _GameScreenState extends State<GameScreen> {
         }
       });
     })
-      ..findNextMove(_currentPlayer, 1);
+      ..findNextMove(_currentPlayer, 5);
   }
 
   List<Widget> _createGameBoardWidgets() {

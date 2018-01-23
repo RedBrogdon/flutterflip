@@ -2,16 +2,19 @@ import 'gameboard.dart';
 
 class GameBoardScorer {
   // Values for each position on the board.
-  static const List<List<int>> positionValues = const [
-    const <int>[1000, 100, 100, 100, 100, 100, 100, 1000],
-    const <int>[100, 1, 1, 1, 1, 1, 1, 100],
+  static const List<List<int>> _positionValues = const [
+    const <int>[10000, -1000, 100, 100, 100, 100, -1000, 10000],
+    const <int>[-1000, -1000, 1, 1, 1, 1, -1000, -1000],
     const <int>[100, 1, 50, 50, 50, 50, 1, 100],
     const <int>[100, 1, 50, 1, 1, 50, 1, 100],
     const <int>[100, 1, 50, 1, 1, 50, 1, 100],
     const <int>[100, 1, 50, 50, 50, 50, 1, 100],
-    const <int>[100, 1, 1, 1, 1, 1, 1, 100],
-    const <int>[1000, 100, 100, 100, 100, 100, 100, 1000],
+    const <int>[-1000, -1000, 1, 1, 1, 1, -1000, -1000],
+    const <int>[10000, -1000, 100, 100, 100, 100, -1000, 10000],
   ];
+
+  static const _maxScore = 1000 * 1000 * 1000;
+  static const _minScore = -1 * _maxScore;
 
   GameBoard _board;
 
@@ -21,6 +24,34 @@ class GameBoardScorer {
 
   int getScore(PieceType player) {
     assert(player != PieceType.empty);
-    return 0;
+    PieceType opponent = getOpponent(player);
+    int score = 0;
+
+    if (_board.getMovesForPlayer(PieceType.black).length == 0 &&
+        _board.getMovesForPlayer(PieceType.white).length == 0) {
+      // Game is over.
+      int playerCount = _board.getPieceCount(player);
+      int opponentCount = _board.getPieceCount(getOpponent(player));
+
+      if (playerCount > opponentCount) {
+        return _maxScore;
+      } else if (playerCount < opponentCount) {
+        return _minScore;
+      } else {
+        return 0;
+      }
+    }
+
+    for (int y = 0; y < GameBoard.height; y++) {
+      for (int x = 0; x < GameBoard.width; x++) {
+        if (_board.getPieceAtLocation(x, y) == player) {
+          score += _positionValues[y][x];
+        } else if (_board.getPieceAtLocation(x, y) == opponent) {
+          score -= _positionValues[y][x];
+        }
+      }
+    }
+
+    return score;
   }
 }

@@ -8,8 +8,8 @@ enum MoveFinderResult { moveFound, noPossibleMove }
 enum MoveFinderIsolateState { idle, loading, running }
 
 class MoveFinderIsolateArguments {
-  MoveFinderIsolateArguments(
-      this.board, this.player, this.numPlies, this.sendPort);
+  MoveFinderIsolateArguments(this.board, this.player, this.numPlies,
+      this.sendPort);
 
   final GameBoard board;
   final PieceType player;
@@ -18,10 +18,17 @@ class MoveFinderIsolateArguments {
 }
 
 class MoveFinderIsolateOutput {
-  MoveFinderIsolateOutput(this.result, [this.move]);
-
   final MoveFinderResult result;
   final Position move;
+
+  MoveFinderIsolateOutput(this.result, [this.move]);
+}
+
+class ScoredMove {
+  final int score;
+  final Position move;
+
+  ScoredMove(this.score, this.move);
 }
 
 typedef void MoveFinderCompletionListener(MoveFinderResult result,
@@ -32,8 +39,6 @@ class MoveFinder {
   final MoveFinderCompletionListener listener;
 
   MoveFinderIsolateState _state = MoveFinderIsolateState.idle;
-
-  MoveFinderIsolateState get state => _state;
 
   bool get isRunning => _state != MoveFinderIsolateState.idle;
 
@@ -83,16 +88,73 @@ class MoveFinder {
     }
   }
 
+  static ScoredMove _isolateRecurser(GameBoard board, PieceType scoringPlayer,
+      PieceType player, int pliesRemaining, bool maxNotMin) {
+    List<Position> availableMoves = board.getMovesForPlayer(player);
+
+    if (availableMoves.length == 0) {
+      return new ScoredMove(0, null);
+    }
+
+    int score;
+    ScoredMove bestMove;
+
+    for (int i = 0; i < availableMoves.length; i++) {
+      GameBoard newBoard =
+      board.updateForMove(availableMoves[i].x, availableMoves[i].y, player);
+      if (newBoard
+          .getMovesForPlayer(getOpponent(player))
+          .length > 0) {
+        // Opponent has next turn.
+        if (pliesRemaining > 0) {
+          score = _isolateRecurser(newBoard, scoringPlayer, getOpponent(player),
+              pliesRemaining - 1, !maxNotMin)
+              .score;
+        } else {
+          score = new GameBoardScorer(newBoard).getScore(scoringPlayer);
+        }
+      } else if (newBoard
+          .getMovesForPlayer(player)
+          .length > 0) {
+        // Opponent has no moves; player gets another turn.
+        if (pliesRemaining > 0) {
+          score = _isolateRecurser(newBoard, scoringPlayer, player,
+              pliesRemaining - 1, maxNotMin)
+              .score;
+        } else {
+          score = new GameBoardScorer(newBoard).getScore(scoringPlayer);
+        }
+      } else {
+        // Game is over.
+        score = new GameBoardScorer(newBoard).getScore(scoringPlayer);
+      }
+
+      //print("[$pliesRemaining] : Considered $player at ${availableMoves[i].x},${availableMoves[i].y} for $score.");
+
+      if (bestMove == null ||
+          (score > bestMove.score && maxNotMin) ||
+          (score < bestMove.score && !maxNotMin)) {
+        bestMove = new ScoredMove(score,
+            new Position(x: availableMoves[i].x, y: availableMoves[i].y));
+      }
+    }
+
+    //print("[$pliesRemaining] : Chose $player at ${bestMove.move.x},${bestMove.move.y} for ${bestMove.score}.");
+    return bestMove;
+  }
+
   static void _isolateMain(MoveFinderIsolateArguments args) {
-    List<Position> moves = args.board.getMovesForPlayer(args.player);
-    if (moves.length == 0) {
-      args.sendPort.send(
-          new MoveFinderIsolateOutput(MoveFinderResult.noPossibleMove, null));
+    ScoredMove bestMove = _isolateRecurser(
+        args.board, args.player, args.player, args.numPlies - 1, true);
+
+    if (bestMove.move != null) {
+      args.sendPort
+          .send(
+          new MoveFinderIsolateOutput(
+              MoveFinderResult.moveFound, bestMove.move));
     } else {
-      args.sendPort.send(new MoveFinderIsolateOutput(MoveFinderResult.moveFound,
-          moves[(new Random()).nextInt(moves.length)]));
+      args.sendPort.send(
+          new MoveFinderIsolateOutput(MoveFinderResult.noPossibleMove));
     }
   }
 }
-
-class MoveFinderIsolate {}
