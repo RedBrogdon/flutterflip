@@ -2,14 +2,13 @@ import 'gameboard.dart';
 import 'gameboard_scorer.dart';
 
 import 'dart:isolate';
-import 'dart:math';
 
 enum MoveFinderResult { moveFound, noPossibleMove }
 enum MoveFinderIsolateState { idle, loading, running }
 
 class MoveFinderIsolateArguments {
-  MoveFinderIsolateArguments(this.board, this.player, this.numPlies,
-      this.sendPort);
+  MoveFinderIsolateArguments(
+      this.board, this.player, this.numPlies, this.sendPort);
 
   final GameBoard board;
   final PieceType player;
@@ -89,51 +88,41 @@ class MoveFinder {
   }
 
   static ScoredMove _isolateRecurser(GameBoard board, PieceType scoringPlayer,
-      PieceType player, int pliesRemaining, bool maxNotMin) {
+      PieceType player, int pliesRemaining) {
     List<Position> availableMoves = board.getMovesForPlayer(player);
 
     if (availableMoves.length == 0) {
       return new ScoredMove(0, null);
     }
 
-    int score;
+    int score = (scoringPlayer == player) ? GameBoardScorer.minScore : GameBoardScorer.maxScore;
     ScoredMove bestMove;
 
     for (int i = 0; i < availableMoves.length; i++) {
       GameBoard newBoard =
-      board.updateForMove(availableMoves[i].x, availableMoves[i].y, player);
-      if (newBoard
-          .getMovesForPlayer(getOpponent(player))
-          .length > 0) {
+          board.updateForMove(availableMoves[i].x, availableMoves[i].y, player);
+      if (pliesRemaining > 0 &&
+          newBoard.getMovesForPlayer(getOpponent(player)).length > 0) {
         // Opponent has next turn.
-        if (pliesRemaining > 0) {
-          score = _isolateRecurser(newBoard, scoringPlayer, getOpponent(player),
-              pliesRemaining - 1, !maxNotMin)
-              .score;
-        } else {
-          score = new GameBoardScorer(newBoard).getScore(scoringPlayer);
-        }
-      } else if (newBoard
-          .getMovesForPlayer(player)
-          .length > 0) {
+        score = _isolateRecurser(newBoard, scoringPlayer, getOpponent(player),
+                pliesRemaining - 1)
+            .score;
+      } else if (pliesRemaining > 0 &&
+          newBoard.getMovesForPlayer(player).length > 0) {
         // Opponent has no moves; player gets another turn.
-        if (pliesRemaining > 0) {
-          score = _isolateRecurser(newBoard, scoringPlayer, player,
-              pliesRemaining - 1, maxNotMin)
-              .score;
-        } else {
-          score = new GameBoardScorer(newBoard).getScore(scoringPlayer);
-        }
+        score = _isolateRecurser(
+                newBoard, scoringPlayer, player, pliesRemaining - 1)
+            .score;
       } else {
-        // Game is over.
+        // Game is over or the search has reached maximum depth.
         score = new GameBoardScorer(newBoard).getScore(scoringPlayer);
       }
 
       //print("[$pliesRemaining] : Considered $player at ${availableMoves[i].x},${availableMoves[i].y} for $score.");
 
       if (bestMove == null ||
-          (score > bestMove.score && maxNotMin) ||
-          (score < bestMove.score && !maxNotMin)) {
+          (score > bestMove.score && scoringPlayer == player) ||
+          (score < bestMove.score && scoringPlayer != player)) {
         bestMove = new ScoredMove(score,
             new Position(x: availableMoves[i].x, y: availableMoves[i].y));
       }
@@ -145,16 +134,14 @@ class MoveFinder {
 
   static void _isolateMain(MoveFinderIsolateArguments args) {
     ScoredMove bestMove = _isolateRecurser(
-        args.board, args.player, args.player, args.numPlies - 1, true);
+        args.board, args.player, args.player, args.numPlies - 1);
 
     if (bestMove.move != null) {
-      args.sendPort
-          .send(
-          new MoveFinderIsolateOutput(
-              MoveFinderResult.moveFound, bestMove.move));
+      args.sendPort.send(new MoveFinderIsolateOutput(
+          MoveFinderResult.moveFound, bestMove.move));
     } else {
-      args.sendPort.send(
-          new MoveFinderIsolateOutput(MoveFinderResult.noPossibleMove));
+      args.sendPort
+          .send(new MoveFinderIsolateOutput(MoveFinderResult.noPossibleMove));
     }
   }
 }

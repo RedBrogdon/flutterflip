@@ -14,6 +14,7 @@ class GameBoard {
   static final int height = 8;
   static final int width = 8;
   final _positions = new List<List<PieceType>>(height);
+  Map<PieceType, List<Position>> _availableMoveCache = new Map<PieceType, List<Position>>();
 
   GameBoard() {
     // Load up initial board state
@@ -62,6 +63,11 @@ class GameBoard {
 
   List<Position> getMovesForPlayer(PieceType player) {
     assert(player != PieceType.empty);
+
+    if (_availableMoveCache.containsKey(player)) {
+      return _availableMoveCache[player];
+    }
+
     List<Position> legalMoves = <Position>[];
     for (int x = 0; x < width; x++) {
       for (int y = 0; y < width; y++) {
@@ -71,6 +77,7 @@ class GameBoard {
       }
     }
 
+    _availableMoveCache[player] = legalMoves;
     return legalMoves;
   }
 

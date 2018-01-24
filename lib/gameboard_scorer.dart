@@ -13,8 +13,8 @@ class GameBoardScorer {
     const <int>[10000, -1000, 100, 100, 100, 100, -1000, 10000],
   ];
 
-  static const _maxScore = 1000 * 1000 * 1000;
-  static const _minScore = -1 * _maxScore;
+  static const maxScore = 1000 * 1000 * 1000;
+  static const minScore = -1 * maxScore;
 
   GameBoard _board;
 
@@ -34,9 +34,9 @@ class GameBoardScorer {
       int opponentCount = _board.getPieceCount(getOpponent(player));
 
       if (playerCount > opponentCount) {
-        return _maxScore;
+        return maxScore;
       } else if (playerCount < opponentCount) {
-        return _minScore;
+        return minScore;
       } else {
         return 0;
       }
