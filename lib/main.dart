@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+
 //import 'package:flutter/widgets.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart' show SystemChrome;
@@ -32,7 +33,8 @@ class GameScreen extends StatefulWidget {
   _GameScreenState createState() => new _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
+class _GameScreenState extends State<GameScreen>
+    with TickerProviderStateMixin {
   static final Map<PieceType, Color> _colorsForPieces = {
     PieceType.black: new Color(0xff202020),
     PieceType.empty: new Color(0x40ffffff),
@@ -92,6 +94,10 @@ class _GameScreenState extends State<GameScreen> {
   MoveFinder _finder;
   int _nextResultStringIndex =
       (new Random().nextInt(_resultStrings.length ~/ 3));
+  Animation<double> _thinkingAnimation;
+  AnimationController _thinkingController;
+  Animation<double> _fadeAnimation;
+  AnimationController _fadeController;
 
   int get _blackScore => _currentBoard.getPieceCount(PieceType.black);
 
@@ -142,6 +148,7 @@ class _GameScreenState extends State<GameScreen> {
 
   void _beginCpuMove() {
     _moveFinderInProgress = true;
+    _fadeController.forward();
     _finder = new MoveFinder(_currentBoard, (MoveFinderResult result,
         [Position move]) {
       setState(() {
@@ -156,6 +163,7 @@ class _GameScreenState extends State<GameScreen> {
         } else {
           _currentPlayer = getOpponent(_currentPlayer);
           _moveFinderInProgress = false;
+          _fadeController.reverse();
         }
       });
     })
@@ -188,10 +196,34 @@ class _GameScreenState extends State<GameScreen> {
     return widgets;
   }
 
+  initState() {
+    super.initState();
+    _thinkingController = new AnimationController(
+        duration: const Duration(milliseconds: 500), vsync: this)
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) _thinkingController.reverse();
+        if (status == AnimationStatus.dismissed) _thinkingController.forward();
+      });
+    _thinkingAnimation = new Tween(begin: 0.0, end: 20.0).animate(
+        new CurvedAnimation(parent: _thinkingController, curve: Curves.easeOut))
+      ..addListener(() {
+        setState(() {});
+      });
+    _fadeController = new AnimationController(
+        duration: const Duration(milliseconds: 300), vsync: this);
+    _fadeAnimation = new Tween(begin: 0.0, end: 1.0).animate(
+        new CurvedAnimation(
+            parent: _fadeController, curve: Curves.easeOut))
+      ..addListener(() {
+        setState(() {});
+      });
+    _thinkingController.forward();
+  }
+
   @override
   Widget build(BuildContext context) {
     return new Container(
-        padding: const EdgeInsets.symmetric(vertical: 60.0, horizontal: 15.0),
+        padding: new EdgeInsets.symmetric(vertical: 60.0, horizontal: 15.0),
         decoration: new BoxDecoration(
           gradient: new LinearGradient(
             begin: Alignment.topLeft,
@@ -235,7 +267,19 @@ class _GameScreenState extends State<GameScreen> {
                     ),
                   ]),
               new Container(
-                margin: new EdgeInsets.only(top: 30.0),
+                  margin: new EdgeInsets.only(top: 20.0),
+                  height: 20.0,
+                  child: new MaybeWidget(
+                      condition:
+                          _fadeAnimation.status != AnimationStatus.dismissed,
+                      child: new Opacity(
+                          opacity: _fadeAnimation.value,
+                          child: new MoveSearchIndicator(
+                              animation: _thinkingAnimation,
+                              color: new Color(0xa0ffffff),
+                              size: 10.0)))),
+              new Container(
+                margin: new EdgeInsets.only(top: 20.0),
                 child: new Column(
                     children: (_currentBoard.movesRemaining > 0 &&
                             (_currentBoard
@@ -276,5 +320,96 @@ class _GameScreenState extends State<GameScreen> {
                           ]),
               ),
             ]));
+  }
+
+  dispose() {
+    _thinkingController.dispose();
+    super.dispose();
+  }
+}
+
+class MoveSearchIndicator extends AnimatedWidget {
+  MoveSearchIndicator(
+      {Key key, Animation<double> animation, this.color, this.size})
+      : super(key: key, listenable: animation);
+
+  final Color color;
+  final double size;
+
+  Widget build(BuildContext context) {
+    final Animation<double> animation = listenable;
+    return new Center(
+      child: new SizedBox(
+        child: new Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            new Padding(
+                padding: new EdgeInsets.only(right: animation.value),
+                child: new Container(
+                    width: this.size,
+                    height: this.size,
+                    decoration: new BoxDecoration(
+                      border: new Border.all(color: this.color, width: 2.0),
+                      borderRadius:
+                          new BorderRadius.all(const Radius.circular(5.0)),
+                    ))),
+            new Padding(
+                padding: new EdgeInsets.only(right: animation.value),
+                child: new Container(
+                    width: this.size,
+                    height: this.size,
+                    decoration: new BoxDecoration(
+                      border: new Border.all(color: this.color, width: 2.0),
+                      borderRadius:
+                          new BorderRadius.all(const Radius.circular(5.0)),
+                    ))),
+            new Padding(
+                padding: new EdgeInsets.only(right: animation.value),
+                child: new Container(
+                    width: this.size,
+                    height: this.size,
+                    decoration: new BoxDecoration(
+                      border: new Border.all(color: this.color, width: 2.0),
+                      borderRadius:
+                          new BorderRadius.all(const Radius.circular(5.0)),
+                    ))),
+            new Padding(
+                padding: new EdgeInsets.only(right: animation.value),
+                child: new Container(
+                    width: this.size,
+                    height: this.size,
+                    decoration: new BoxDecoration(
+                      border: new Border.all(color: this.color, width: 2.0),
+                      borderRadius:
+                          new BorderRadius.all(const Radius.circular(5.0)),
+                    ))),
+            new Container(
+                width: this.size,
+                height: this.size,
+                decoration: new BoxDecoration(
+                  border: new Border.all(color: this.color, width: 2.0),
+                  borderRadius:
+                      new BorderRadius.all(const Radius.circular(5.0)),
+                )),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class MaybeWidget extends StatelessWidget {
+  MaybeWidget({Key key, this.child, this.condition}) : super(key: key);
+
+  final Widget child;
+  final bool condition;
+
+  @override
+  Widget build(BuildContext context) {
+    if (condition) {
+      return child;
+    } else {
+      return new Container(width: 0.0, height: 0.0);
+    }
   }
 }
