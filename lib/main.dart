@@ -1,12 +1,12 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
-
-//import 'package:flutter/widgets.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart' show SystemChrome;
+import 'package:flutter/widgets.dart';
+
 import 'gameboard.dart';
 import 'move_finder.dart';
+import 'styling.dart';
 
 void main() {
   debugPaintSizeEnabled = false;
@@ -15,63 +15,28 @@ void main() {
 }
 
 class FlutterFlipApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
-      title: 'Flutter Demo',
-      home: new GameScreen(title: 'Flutter Flip'),
+    return new WidgetsApp(
+      color: new Color(0xffffffff),
+      onGenerateRoute: (RouteSettings settings) {
+        return new PageRouteBuilder(
+            settings: settings,
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                new GameScreen());
+      },
     );
   }
 }
 
 class GameScreen extends StatefulWidget {
-  GameScreen({Key key, this.title}) : super(key: key);
-  final String title;
+  GameScreen({Key key}) : super(key: key);
 
   @override
   _GameScreenState createState() => new _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen>
-    with TickerProviderStateMixin {
-  static final Map<PieceType, Color> _colorsForPieces = {
-    PieceType.black: new Color(0xff202020),
-    PieceType.empty: new Color(0x40ffffff),
-    PieceType.white: new Color(0xffffffff)
-  };
-
-  static const Color _backgroundStartColor = const Color(0xb000bfff);
-  static const Color _backgroundFinishColor = const Color(0xb0ff00ee);
-
-  static final TextStyle _scoreStyle = new TextStyle(
-      fontSize: 50.0,
-      fontFamily: 'Roboto',
-      decoration: TextDecoration.none,
-      color: const Color(0xe0ffffff),
-      fontStyle: FontStyle.italic);
-
-  static final TextStyle _scoreLabelStyle = new TextStyle(
-      fontSize: 20.0,
-      fontFamily: 'Roboto',
-      decoration: TextDecoration.none,
-      color: const Color(0xa0ffffff),
-      fontStyle: FontStyle.normal);
-
-  static final TextStyle _resultStyle = new TextStyle(
-      fontSize: 40.0,
-      fontFamily: 'Roboto',
-      decoration: TextDecoration.none,
-      color: const Color(0xe0ffffff),
-      fontStyle: FontStyle.italic);
-
-  static final TextStyle _buttonTextStyle = new TextStyle(
-      fontSize: 20.0,
-      fontFamily: 'Roboto',
-      decoration: TextDecoration.none,
-      color: const Color(0xe0ffffff),
-      fontStyle: FontStyle.italic);
-
+class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   static final List<String> _resultStrings = <String>[
     /* User wins */
     'Lo, I am vanquished.',
@@ -180,8 +145,8 @@ class _GameScreenState extends State<GameScreen>
           children: widthIndices
               .map((x) => new Container(
                     margin: new EdgeInsets.all(1.0),
-                    color: _colorsForPieces[
-                        _currentBoard.getPieceAtLocation(x, y)],
+                    color: Styling
+                        .pieceColors[_currentBoard.getPieceAtLocation(x, y)],
                     child: new SizedBox(
                       width: 40.0,
                       height: 40.0,
@@ -212,8 +177,7 @@ class _GameScreenState extends State<GameScreen>
     _fadeController = new AnimationController(
         duration: const Duration(milliseconds: 300), vsync: this);
     _fadeAnimation = new Tween(begin: 0.0, end: 1.0).animate(
-        new CurvedAnimation(
-            parent: _fadeController, curve: Curves.easeOut))
+        new CurvedAnimation(parent: _fadeController, curve: Curves.easeOut))
       ..addListener(() {
         setState(() {});
       });
@@ -228,7 +192,10 @@ class _GameScreenState extends State<GameScreen>
           gradient: new LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: <Color>[_backgroundStartColor, _backgroundFinishColor],
+            colors: <Color>[
+              Styling.backgroundStartColor,
+              Styling.backgroundFinishColor
+            ],
           ),
         ),
         child: new Column(
@@ -243,9 +210,10 @@ class _GameScreenState extends State<GameScreen>
                       child: new Column(children: <Widget>[
                         new Text("black",
                             textAlign: TextAlign.center,
-                            style: _scoreLabelStyle),
+                            style: Styling.scoreLabelText),
                         new Text("$_blackScore",
-                            textAlign: TextAlign.center, style: _scoreStyle)
+                            textAlign: TextAlign.center,
+                            style: Styling.scoreText)
                       ]),
                     ),
                     new Padding(
@@ -257,10 +225,10 @@ class _GameScreenState extends State<GameScreen>
                           children: <Widget>[
                             new Text("white",
                                 textAlign: TextAlign.center,
-                                style: _scoreLabelStyle),
+                                style: Styling.scoreLabelText),
                             new Text("$_whiteScore",
                                 textAlign: TextAlign.center,
-                                style: _scoreStyle),
+                                style: Styling.scoreText),
                           ],
                         ),
                       ),
@@ -269,15 +237,12 @@ class _GameScreenState extends State<GameScreen>
               new Container(
                   margin: new EdgeInsets.only(top: 20.0),
                   height: 20.0,
-                  child: new MaybeWidget(
-                      condition:
-                          _fadeAnimation.status != AnimationStatus.dismissed,
-                      child: new Opacity(
-                          opacity: _fadeAnimation.value,
-                          child: new MoveSearchIndicator(
-                              animation: _thinkingAnimation,
-                              color: new Color(0xa0ffffff),
-                              size: 10.0)))),
+                  child: new Opacity(
+                      opacity: _fadeAnimation.value,
+                      child: new MoveSearchIndicator(
+                          animation: _thinkingAnimation,
+                          color: new Color(0xa0ffffff),
+                          size: 10.0))),
               new Container(
                 margin: new EdgeInsets.only(top: 20.0),
                 child: new Column(
@@ -296,7 +261,7 @@ class _GameScreenState extends State<GameScreen>
                                 bottom: 50.0,
                               ),
                               child: new Text(_getResultString(),
-                                  style: _resultStyle),
+                                  style: Styling.resultText),
                             ),
                             new GestureDetector(
                                 onTap: () {
@@ -316,7 +281,7 @@ class _GameScreenState extends State<GameScreen>
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 5.0, horizontal: 15.0),
                                     child: new Text("new game",
-                                        style: _buttonTextStyle)))
+                                        style: Styling.buttonText)))
                           ]),
               ),
             ]));
@@ -395,21 +360,5 @@ class MoveSearchIndicator extends AnimatedWidget {
         ),
       ),
     );
-  }
-}
-
-class MaybeWidget extends StatelessWidget {
-  MaybeWidget({Key key, this.child, this.condition}) : super(key: key);
-
-  final Widget child;
-  final bool condition;
-
-  @override
-  Widget build(BuildContext context) {
-    if (condition) {
-      return child;
-    } else {
-      return new Container(width: 0.0, height: 0.0);
-    }
   }
 }

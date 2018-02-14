@@ -87,7 +87,7 @@ class MoveFinder {
     }
   }
 
-  static ScoredMove _isolateRecurser(GameBoard board, PieceType scoringPlayer,
+  static ScoredMove _isolateRecursor(GameBoard board, PieceType scoringPlayer,
       PieceType player, int pliesRemaining) {
     List<Position> availableMoves = board.getMovesForPlayer(player);
 
@@ -104,13 +104,13 @@ class MoveFinder {
       if (pliesRemaining > 0 &&
           newBoard.getMovesForPlayer(getOpponent(player)).length > 0) {
         // Opponent has next turn.
-        score = _isolateRecurser(newBoard, scoringPlayer, getOpponent(player),
+        score = _isolateRecursor(newBoard, scoringPlayer, getOpponent(player),
                 pliesRemaining - 1)
             .score;
       } else if (pliesRemaining > 0 &&
           newBoard.getMovesForPlayer(player).length > 0) {
         // Opponent has no moves; player gets another turn.
-        score = _isolateRecurser(
+        score = _isolateRecursor(
                 newBoard, scoringPlayer, player, pliesRemaining - 1)
             .score;
       } else {
@@ -133,7 +133,7 @@ class MoveFinder {
   }
 
   static void _isolateMain(MoveFinderIsolateArguments args) {
-    ScoredMove bestMove = _isolateRecurser(
+    ScoredMove bestMove = _isolateRecursor(
         args.board, args.player, args.player, args.numPlies - 1);
 
     if (bestMove.move != null) {
