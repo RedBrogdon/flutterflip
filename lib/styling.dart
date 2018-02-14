@@ -16,6 +16,7 @@ abstract class Styling {
 
   static const Color backgroundStartColor = const Color(0xb000bfff);
   static const Color backgroundFinishColor = const Color(0xb0ff00ee);
+  static const Color thinkingIndicatorColor = const Color(0xa0ffffff);
 
   static final TextStyle scoreText = new TextStyle(
       fontSize: 50.0,
@@ -44,4 +45,15 @@ abstract class Styling {
       decoration: TextDecoration.none,
       color: const Color(0xe0ffffff),
       fontStyle: FontStyle.italic);
+
+  static final BoxDecoration activePlayerIndicator = new BoxDecoration(
+      border: const Border(
+          bottom: const BorderSide(
+              width: 2.0, color: const Color(0xffffffff))));
+
+  static final BoxDecoration inactivePlayerIndicator = new BoxDecoration(
+      border: const Border(
+          bottom: const BorderSide(
+              width: 2.0, color: const Color(0x00000000))));
+
 }

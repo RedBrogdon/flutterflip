@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart' show SystemChrome;
 import 'package:flutter/widgets.dart';
@@ -7,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'gameboard.dart';
 import 'move_finder.dart';
 import 'styling.dart';
+import 'thinking_indicator.dart';
 
 void main() {
   debugPaintSizeEnabled = false;
@@ -37,28 +36,10 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
-  static final List<String> _resultStrings = <String>[
-    /* User wins */
-    'Lo, I am vanquished.',
-    'You\'re cheating, are\'t you? Playing me against myself on another phone?',
-    'If I were backed by a cloud service, I totally could have beaten you.',
-    /* Tie */
-    'Well that was unlikely.',
-    'I had one core tied behind my back.',
-    'What would you say to a round of sudden death overtime?',
-    /* CPU wins */
-    'It was probably luck. Play again?',
-    'There\'s 3^60 * 2^4 possible board states, so don\'t feel bad.',
-    'I have multiple processing cores, and you only have one, so there\'s'
-        ' no shame here.',
-  ];
-
   GameBoard _currentBoard = new GameBoard();
   PieceType _currentPlayer = PieceType.black;
   bool _moveFinderInProgress = false;
   MoveFinder _finder;
-  int _nextResultStringIndex =
-      (new Random().nextInt(_resultStrings.length ~/ 3));
   Animation<double> _thinkingAnimation;
   AnimationController _thinkingController;
   Animation<double> _fadeAnimation;
@@ -68,31 +49,17 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   int get _whiteScore => _currentBoard.getPieceCount(PieceType.white);
 
-  String _getResultString() {
-    if (_blackScore > 32) {
-      // User wins
-      return _resultStrings[_nextResultStringIndex];
-    } else if (_blackScore == 32) {
-      // Tie
-      return _resultStrings[_nextResultStringIndex + 3];
-    } else {
-      // CPU wins
-      return _resultStrings[_nextResultStringIndex + 6];
-    }
-  }
+  bool get _gameIsOver => (_currentBoard.movesRemaining == 0 ||
+      _currentBoard.getMovesForPlayer(_currentPlayer).length == 0);
+
+  String get _gameResultString => (_blackScore > 32)
+      ? "Black wins."
+      : (_whiteScore > 32) ? "White wins." : "Tie.";
 
   BoxDecoration _getPlayerIndicatorDecoration(PieceType player) {
-    if (_currentPlayer == player) {
-      return new BoxDecoration(
-          border: const Border(
-              bottom: const BorderSide(
-                  width: 2.0, color: const Color(0xffffffff))));
-    } else {
-      return new BoxDecoration(
-          border: const Border(
-              bottom: const BorderSide(
-                  width: 2.0, color: const Color(0x00000000))));
-    }
+    return (_currentPlayer == player)
+        ? Styling.activePlayerIndicator
+        : Styling.inactivePlayerIndicator;
   }
 
   void _attemptUserMove(int x, int y) {
@@ -135,6 +102,30 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       ..findNextMove(_currentPlayer, 5);
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _thinkingController = new AnimationController(
+        duration: const Duration(milliseconds: 500), vsync: this)
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) _thinkingController.reverse();
+        if (status == AnimationStatus.dismissed) _thinkingController.forward();
+      });
+    _thinkingAnimation = new Tween(begin: 0.0, end: 10.0).animate(
+        new CurvedAnimation(parent: _thinkingController, curve: Curves.easeOut))
+      ..addListener(() {
+        setState(() {});
+      });
+    _fadeController = new AnimationController(
+        duration: const Duration(milliseconds: 300), vsync: this);
+    _fadeAnimation = new Tween(begin: 0.0, end: 1.0).animate(
+        new CurvedAnimation(parent: _fadeController, curve: Curves.easeOut))
+      ..addListener(() {
+        setState(() {});
+      });
+    _thinkingController.forward();
+  }
+
   List<Widget> _createGameBoardWidgets() {
     List<Widget> widgets = <Widget>[];
     List<int> heightIndices = <int>[0, 1, 2, 3, 4, 5, 6, 7];
@@ -161,33 +152,43 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     return widgets;
   }
 
-  initState() {
-    super.initState();
-    _thinkingController = new AnimationController(
-        duration: const Duration(milliseconds: 500), vsync: this)
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) _thinkingController.reverse();
-        if (status == AnimationStatus.dismissed) _thinkingController.forward();
-      });
-    _thinkingAnimation = new Tween(begin: 0.0, end: 20.0).animate(
-        new CurvedAnimation(parent: _thinkingController, curve: Curves.easeOut))
-      ..addListener(() {
-        setState(() {});
-      });
-    _fadeController = new AnimationController(
-        duration: const Duration(milliseconds: 300), vsync: this);
-    _fadeAnimation = new Tween(begin: 0.0, end: 1.0).animate(
-        new CurvedAnimation(parent: _fadeController, curve: Curves.easeOut))
-      ..addListener(() {
-        setState(() {});
-      });
-    _thinkingController.forward();
+  Widget _createEndGameWidget() {
+    if (_gameIsOver) {
+      return new Column(children: <Widget>[
+        new Padding(
+          padding: const EdgeInsets.only(
+            top: 30.0,
+            left: 10.0,
+            right: 10.0,
+            bottom: 20.0,
+          ),
+          child: new Text(_gameResultString, style: Styling.resultText),
+        ),
+        new GestureDetector(
+            onTap: () {
+              setState(() {
+                _currentBoard = new GameBoard();
+                _currentPlayer = PieceType.black;
+              });
+            },
+            child: new Container(
+                decoration: new BoxDecoration(
+                    border: new Border.all(color: const Color(0xe0ffffff)),
+                    borderRadius:
+                        new BorderRadius.all(const Radius.circular(15.0))),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 5.0, horizontal: 15.0),
+                child: new Text("new game", style: Styling.buttonText)))
+      ]);
+    } else {
+      return new Container(height: 0.0, width: 0.0);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return new Container(
-        padding: new EdgeInsets.symmetric(vertical: 60.0, horizontal: 15.0),
+        padding: new EdgeInsets.only(top: 60.0, left: 15.0, right: 15.0),
         decoration: new BoxDecoration(
           gradient: new LinearGradient(
             begin: Alignment.topLeft,
@@ -239,126 +240,20 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                   height: 20.0,
                   child: new Opacity(
                       opacity: _fadeAnimation.value,
-                      child: new MoveSearchIndicator(
+                      child: new ThinkingIndicator(
                           animation: _thinkingAnimation,
-                          color: new Color(0xa0ffffff),
+                          color: Styling.thinkingIndicatorColor,
                           size: 10.0))),
               new Container(
                 margin: new EdgeInsets.only(top: 20.0),
-                child: new Column(
-                    children: (_currentBoard.movesRemaining > 0 &&
-                            (_currentBoard
-                                    .getMovesForPlayer(_currentPlayer)
-                                    .length >
-                                0))
-                        ? _createGameBoardWidgets()
-                        : <Widget>[
-                            new Padding(
-                              padding: const EdgeInsets.only(
-                                top: 30.0,
-                                left: 10.0,
-                                right: 10.0,
-                                bottom: 50.0,
-                              ),
-                              child: new Text(_getResultString(),
-                                  style: Styling.resultText),
-                            ),
-                            new GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _currentBoard = new GameBoard();
-                                    _currentPlayer = PieceType.black;
-                                    _nextResultStringIndex = (new Random()
-                                        .nextInt(_resultStrings.length ~/ 3));
-                                  });
-                                },
-                                child: new Container(
-                                    decoration: new BoxDecoration(
-                                        border: new Border.all(
-                                            color: const Color(0xe0ffffff)),
-                                        borderRadius: new BorderRadius.all(
-                                            const Radius.circular(15.0))),
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 5.0, horizontal: 15.0),
-                                    child: new Text("new game",
-                                        style: Styling.buttonText)))
-                          ]),
+                child: new Column(children: _createGameBoardWidgets()),
               ),
+              _createEndGameWidget(),
             ]));
   }
 
   dispose() {
     _thinkingController.dispose();
     super.dispose();
-  }
-}
-
-class MoveSearchIndicator extends AnimatedWidget {
-  MoveSearchIndicator(
-      {Key key, Animation<double> animation, this.color, this.size})
-      : super(key: key, listenable: animation);
-
-  final Color color;
-  final double size;
-
-  Widget build(BuildContext context) {
-    final Animation<double> animation = listenable;
-    return new Center(
-      child: new SizedBox(
-        child: new Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            new Padding(
-                padding: new EdgeInsets.only(right: animation.value),
-                child: new Container(
-                    width: this.size,
-                    height: this.size,
-                    decoration: new BoxDecoration(
-                      border: new Border.all(color: this.color, width: 2.0),
-                      borderRadius:
-                          new BorderRadius.all(const Radius.circular(5.0)),
-                    ))),
-            new Padding(
-                padding: new EdgeInsets.only(right: animation.value),
-                child: new Container(
-                    width: this.size,
-                    height: this.size,
-                    decoration: new BoxDecoration(
-                      border: new Border.all(color: this.color, width: 2.0),
-                      borderRadius:
-                          new BorderRadius.all(const Radius.circular(5.0)),
-                    ))),
-            new Padding(
-                padding: new EdgeInsets.only(right: animation.value),
-                child: new Container(
-                    width: this.size,
-                    height: this.size,
-                    decoration: new BoxDecoration(
-                      border: new Border.all(color: this.color, width: 2.0),
-                      borderRadius:
-                          new BorderRadius.all(const Radius.circular(5.0)),
-                    ))),
-            new Padding(
-                padding: new EdgeInsets.only(right: animation.value),
-                child: new Container(
-                    width: this.size,
-                    height: this.size,
-                    decoration: new BoxDecoration(
-                      border: new Border.all(color: this.color, width: 2.0),
-                      borderRadius:
-                          new BorderRadius.all(const Radius.circular(5.0)),
-                    ))),
-            new Container(
-                width: this.size,
-                height: this.size,
-                decoration: new BoxDecoration(
-                  border: new Border.all(color: this.color, width: 2.0),
-                  borderRadius:
-                      new BorderRadius.all(const Radius.circular(5.0)),
-                )),
-          ],
-        ),
-      ),
-    );
   }
 }
