@@ -1,3 +1,7 @@
+// Copyright 2018 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart' show SystemChrome;
 import 'package:flutter/widgets.dart';
@@ -81,6 +85,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   void _beginCpuMove() {
     _moveFinderInProgress = true;
     _fadeController.forward();
+    _thinkingController.forward();
     _finder = new MoveFinder(_currentBoard, (MoveFinderResult result,
         [Position move]) {
       setState(() {
@@ -105,6 +110,20 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    _fadeController = new AnimationController(
+        duration: const Duration(milliseconds: 300), vsync: this)
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.dismissed) {
+          // Once the fadeout is complete, there's no need for the "thinking"
+          // animation to keep cycling.
+          _thinkingController.stop(canceled: false);
+        }
+      });
+    _fadeAnimation = new Tween(begin: 0.0, end: 1.0).animate(
+        new CurvedAnimation(parent: _fadeController, curve: Curves.easeOut))
+      ..addListener(() {
+        setState(() {});
+      });
     _thinkingController = new AnimationController(
         duration: const Duration(milliseconds: 500), vsync: this)
       ..addStatusListener((status) {
@@ -116,40 +135,27 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       ..addListener(() {
         setState(() {});
       });
-    _fadeController = new AnimationController(
-        duration: const Duration(milliseconds: 300), vsync: this);
-    _fadeAnimation = new Tween(begin: 0.0, end: 1.0).animate(
-        new CurvedAnimation(parent: _fadeController, curve: Curves.easeOut))
-      ..addListener(() {
-        setState(() {});
-      });
-    _thinkingController.forward();
   }
 
   List<Widget> _createGameBoardWidgets() {
-    List<Widget> widgets = <Widget>[];
-    List<int> heightIndices = <int>[0, 1, 2, 3, 4, 5, 6, 7];
-    List<int> widthIndices = <int>[0, 1, 2, 3, 4, 5, 6, 7];
-
-    widgets.addAll(heightIndices.map((y) => new Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: widthIndices
-              .map((x) => new Container(
-                    margin: new EdgeInsets.all(1.0),
-                    color: Styling
-                        .pieceColors[_currentBoard.getPieceAtLocation(x, y)],
-                    child: new SizedBox(
-                      width: 40.0,
-                      height: 40.0,
-                      child: new GestureDetector(
-                        onTap: () => _attemptUserMove(x, y),
+    return new List<Widget>.generate(
+        GameBoard.height,
+        (y) => new Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: new List<Widget>.generate(
+                GameBoard.width,
+                (x) => new Container(
+                      margin: new EdgeInsets.all(1.0),
+                      color: Styling
+                          .pieceColors[_currentBoard.getPieceAtLocation(x, y)],
+                      child: new SizedBox(
+                        width: 40.0,
+                        height: 40.0,
+                        child: new GestureDetector(
+                          onTap: () => _attemptUserMove(x, y),
+                        ),
                       ),
-                    ),
-                  ))
-              .toList(),
-        )));
-
-    return widgets;
+                    ))));
   }
 
   Widget _createEndGameWidget() {
