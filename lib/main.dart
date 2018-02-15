@@ -56,9 +56,15 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   bool get _gameIsOver => (_currentBoard.movesRemaining == 0 ||
       _currentBoard.getMovesForPlayer(_currentPlayer).length == 0);
 
-  String get _gameResultString => (_blackScore > 32)
-      ? "Black wins."
-      : (_whiteScore > 32) ? "White wins." : "Tie.";
+  String get _gameResultString {
+    if (_blackScore > 32) {
+      return "Black wins.";
+    } else if (_whiteScore > 32) {
+      return "White wins.";
+    } else {
+      return "Tie.";
+    }
+  }
 
   BoxDecoration _getPlayerIndicatorDecoration(PieceType player) {
     return (_currentPlayer == player)
