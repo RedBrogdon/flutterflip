@@ -2,14 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'gameboard.dart';
-import 'gameboard_scorer.dart';
+import 'game_board.dart';
+import 'game_board_scorer.dart';
 
 import 'dart:isolate';
+import 'dart:async';
 
 enum MoveFinderResult { moveFound, noPossibleMove }
 enum MoveFinderIsolateState { idle, loading, running }
 
+/// This class holds all the data needed by the Dart isolate that's responsible
+/// for searching the tree of possible moves.
 class MoveFinderIsolateArguments {
   MoveFinderIsolateArguments(
       this.board, this.player, this.numPlies, this.sendPort);
@@ -20,26 +23,28 @@ class MoveFinderIsolateArguments {
   final SendPort sendPort;
 }
 
+/// This is the data the isolate sends back once it's finished looking for the
+/// best available move.
 class MoveFinderIsolateOutput {
   final MoveFinderResult result;
   final Position move;
 
-  MoveFinderIsolateOutput(this.result, [this.move]);
+  const MoveFinderIsolateOutput(this.result, [this.move]);
 }
 
 class ScoredMove {
   final int score;
   final Position move;
 
-  ScoredMove(this.score, this.move);
+  const ScoredMove(this.score, this.move);
 }
 
-typedef void MoveFinderCompletionListener(MoveFinderResult result,
-    [Position move]);
-
+/// The [MoveFinder] class encapsulates an isolate that will perform a minimax
+/// for the best available move on a [GameBoard] using a [GameBoardScorer] to
+/// provide the heuristic.
 class MoveFinder {
   final GameBoard initialBoard;
-  final MoveFinderCompletionListener listener;
+  final Completer<Position> completer = new Completer<Position>();
 
   MoveFinderIsolateState _state = MoveFinderIsolateState.idle;
 
@@ -48,15 +53,17 @@ class MoveFinder {
   final ReceivePort _receivePort;
   Isolate _isolate;
 
-  MoveFinder(this.initialBoard, this.listener)
-      : assert(listener != null),
-        assert(initialBoard != null),
+  MoveFinder(this.initialBoard)
+      : assert(initialBoard != null),
         _receivePort = new ReceivePort() {
     _receivePort.listen(_handleMessage);
   }
 
-  void findNextMove(PieceType player, int numPlies) {
-    if (!isRunning) {
+  /// Searches the tree of possible moves on [initialBoard] to a depth of
+  /// [numPlies], looking for the best possible move for [player]. Because the
+  /// actual work is done in an isolate, a [Future] is used as the return value.
+  Future<Position> findNextMove(PieceType player, int numPlies) {
+    if (!completer.isCompleted && !isRunning) {
       final MoveFinderIsolateArguments args = new MoveFinderIsolateArguments(
           initialBoard, player, numPlies, _receivePort.sendPort);
 
@@ -71,23 +78,19 @@ class MoveFinder {
         }
       });
     }
-  }
 
-  void cancelSearch() {
-    if (isRunning) {
-      _state = MoveFinderIsolateState.idle;
-      if (_isolate != null) {
-        _isolate.kill(priority: Isolate.IMMEDIATE);
-        _isolate = null;
-      }
-    }
+    return completer.future;
   }
 
   void _handleMessage(dynamic message) {
     if (message is MoveFinderIsolateOutput) {
       _state = MoveFinderIsolateState.idle;
       _isolate = null;
-      listener(message.result, message.move);
+      if (message.result == MoveFinderResult.moveFound) {
+        completer.complete(message.move);
+      } else {
+        completer.completeError(null);
+      }
     }
   }
 
@@ -99,7 +102,9 @@ class MoveFinder {
       return new ScoredMove(0, null);
     }
 
-    int score = (scoringPlayer == player) ? GameBoardScorer.minScore : GameBoardScorer.maxScore;
+    int score = (scoringPlayer == player)
+        ? GameBoardScorer.minScore
+        : GameBoardScorer.maxScore;
     ScoredMove bestMove;
 
     for (int i = 0; i < availableMoves.length; i++) {
@@ -122,17 +127,14 @@ class MoveFinder {
         score = new GameBoardScorer(newBoard).getScore(scoringPlayer);
       }
 
-      //print("[$pliesRemaining] : Considered $player at ${availableMoves[i].x},${availableMoves[i].y} for $score.");
-
       if (bestMove == null ||
           (score > bestMove.score && scoringPlayer == player) ||
           (score < bestMove.score && scoringPlayer != player)) {
         bestMove = new ScoredMove(score,
-            new Position(x: availableMoves[i].x, y: availableMoves[i].y));
+            new Position(availableMoves[i].x, availableMoves[i].y));
       }
     }
 
-    //print("[$pliesRemaining] : Chose $player at ${bestMove.move.x},${bestMove.move.y} for ${bestMove.score}.");
     return bestMove;
   }
 

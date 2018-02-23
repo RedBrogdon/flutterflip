@@ -8,20 +8,22 @@ PieceType getOpponent(PieceType player) =>
     (player == PieceType.black) ? PieceType.white : PieceType.black;
 
 class Position {
-  Position({this.x, this.y});
+  final int x;
+  final int y;
 
-  int x;
-  int y;
+  Position(int x, int y)
+      : this.x = x,
+        this.y = y;
 }
 
 class GameBoard {
   static final int height = 8;
   static final int width = 8;
   final _positions = new List<List<PieceType>>(height);
-  Map<PieceType, List<Position>> _availableMoveCache = new Map<PieceType, List<Position>>();
+  Map<PieceType, List<Position>> _availableMoveCache =
+      new Map<PieceType, List<Position>>();
 
   GameBoard() {
-    // Load up initial board state
     for (int y = 0; y < width; y++) {
       _positions[y] = new List<PieceType>(height);
       for (int x = 0; x < width; x++) {
@@ -35,8 +37,6 @@ class GameBoard {
     _positions[4][4] = PieceType.black;
   }
 
-  int get movesRemaining => getPieceCount(PieceType.empty);
-
   GameBoard.fromGameBoard(GameBoard other) {
     // Copy constructor.
     for (int y = 0; y < height; y++) {
@@ -46,6 +46,8 @@ class GameBoard {
       }
     }
   }
+
+  int get movesRemaining => getPieceCount(PieceType.empty);
 
   PieceType getPieceAtLocation(int x, int y) {
     assert(x >= 0 && x < width);
@@ -66,7 +68,9 @@ class GameBoard {
   }
 
   List<Position> getMovesForPlayer(PieceType player) {
-    assert(player != PieceType.empty);
+    if (player == PieceType.empty) {
+      return [];
+    }
 
     if (_availableMoveCache.containsKey(player)) {
       return _availableMoveCache[player];
@@ -76,7 +80,7 @@ class GameBoard {
     for (int x = 0; x < width; x++) {
       for (int y = 0; y < width; y++) {
         if (isLegalMove(x, y, player)) {
-          legalMoves.add(new Position(x: x, y: y));
+          legalMoves.add(new Position(x, y));
         }
       }
     }
@@ -99,6 +103,28 @@ class GameBoard {
     }
 
     return newBoard;
+  }
+
+  bool isLegalMove(int x, int y, PieceType player) {
+    assert(player != PieceType.empty);
+    assert(x >= 0 && x < width);
+    assert(y >= 0 && y < height);
+
+    // It's occupied, yo.
+    if (_positions[y][x] != PieceType.empty) return false;
+
+    // Try each of the eight cardinal directions, looking for a row of opposing
+    // pieces to flip.
+    for (int dx = -1; dx <= 1; dx++) {
+      for (int dy = -1; dy <= 1; dy++) {
+        if (dx == 0 && dy == 0) continue;
+        if (_traversePath(x, y, dx, dy, player, false)) return true;
+      }
+    }
+
+    // No flippable opponent pieces were found in any directions. This is not a
+    // legal move.
+    return false;
   }
 
   bool _traversePath(
@@ -135,28 +161,6 @@ class GameBoard {
       curY += dy;
     }
 
-    return false;
-  }
-
-  bool isLegalMove(int x, int y, PieceType player) {
-    assert(player != PieceType.empty);
-    assert(x >= 0 && x < width);
-    assert(y >= 0 && y < height);
-
-    // It's occupied, yo.
-    if (_positions[y][x] != PieceType.empty) return false;
-
-    // Try each of the eight cardinal directions, looking for a row of opposing
-    // pieces to flip.
-    for (int dx = -1; dx <= 1; dx++) {
-      for (int dy = -1; dy <= 1; dy++) {
-        if (dx == 0 && dy == 0) continue;
-        if (_traversePath(x, y, dx, dy, player, false)) return true;
-      }
-    }
-
-    // No flippable opponent pieces were found in any directions. This is not a
-    // legal move.
     return false;
   }
 }

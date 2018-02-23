@@ -2,6 +2,7 @@ name: flutterflip
 description: A Reversi game built in Flutter.
 
 dependencies:
+  async: "2.0.3"
   flutter:
     sdk: flutter
 
