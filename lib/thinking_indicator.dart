@@ -4,6 +4,8 @@
 
 import 'package:flutter/widgets.dart';
 
+/// This is a self-animated progress spinner, only instead of spinning it
+/// moves five little circles in a horizontal arrangement.
 class ThinkingIndicator extends StatefulWidget {
   final Color color;
   final double size;
@@ -27,6 +29,8 @@ class _ThinkingIndicatorState extends State<ThinkingIndicator>
     _thinkingController = new AnimationController(
         duration: const Duration(milliseconds: 500), vsync: this)
       ..addStatusListener((status) {
+        // This bit ensures that the animation reverses course rather than
+        // stopping.
         if (status == AnimationStatus.completed) _thinkingController.reverse();
         if (status == AnimationStatus.dismissed) _thinkingController.forward();
       });

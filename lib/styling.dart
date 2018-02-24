@@ -3,14 +3,15 @@
 // found in the LICENSE file.
 
 import 'package:flutter/widgets.dart';
+
 import 'game_board.dart';
 
-// The Theme class is part of Flutter's Material Design package, which this game
-// doesn't use. Instead, this static class is used as a convenient spot to hold
-// constants for colors, text styles, and so on.
-//
-// While a larger app would need something more sophisticated, for a simple,
-// one-screen game, this gets the job done just fine.
+/// The Theme class is part of Flutter's Material Design package, which this
+/// game doesn't use. Instead, this static class is used as a convenient spot to
+/// hold constants for colors, text styles, and so on.
+///
+/// While a larger app would need something more sophisticated, for a simple,
+/// one-screen game, this gets the job done just fine.
 abstract class Styling {
   // **** GRADIENTS AND COLORS ****
 

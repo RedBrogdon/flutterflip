@@ -4,9 +4,13 @@
 
 enum PieceType { empty, black, white }
 
+/// This method flips a black piece to a white one, and vice versa. I'm still
+/// unsure about having it as a global function, but don't know where else to
+/// put it.
 PieceType getOpponent(PieceType player) =>
     (player == PieceType.black) ? PieceType.white : PieceType.black;
 
+/// A position on the reversi board. Just an [x] and [y] coordinate pair.
 class Position {
   final int x;
   final int y;
@@ -16,13 +20,19 @@ class Position {
         this.y = y;
 }
 
+/// An immutable representation of a reversi game's board.
 class GameBoard {
   static final int height = 8;
   static final int width = 8;
   final _positions = new List<List<PieceType>>(height);
+
+  // Because calculating out all the available moves for a player can be
+  // expensive, they're cached here.
   Map<PieceType, List<Position>> _availableMoveCache =
       new Map<PieceType, List<Position>>();
 
+  /// Default constructor, which creates a board with pieces in starting
+  /// position.
   GameBoard() {
     for (int y = 0; y < width; y++) {
       _positions[y] = new List<PieceType>(height);
@@ -37,6 +47,7 @@ class GameBoard {
     _positions[4][4] = PieceType.black;
   }
 
+  /// Copy constructor.
   GameBoard.fromGameBoard(GameBoard other) {
     // Copy constructor.
     for (int y = 0; y < height; y++) {
@@ -47,14 +58,14 @@ class GameBoard {
     }
   }
 
-  int get movesRemaining => getPieceCount(PieceType.empty);
-
+  /// Retrieves the type of piece at a location on the game board.
   PieceType getPieceAtLocation(int x, int y) {
     assert(x >= 0 && x < width);
     assert(y >= 0 && y < height);
     return _positions[y][x];
   }
 
+  /// Gets the total number of pieces of a particular type.
   int getPieceCount(PieceType pieceType) {
     int count = 0;
     for (int y = 0; y < height; y++) {
@@ -67,6 +78,9 @@ class GameBoard {
     return count;
   }
 
+  /// Calculates the list of available moves on this board for a player. These
+  /// moves are calculated for the first call and cached for any subsequent
+  /// ones.
   List<Position> getMovesForPlayer(PieceType player) {
     if (player == PieceType.empty) {
       return [];
@@ -89,6 +103,9 @@ class GameBoard {
     return legalMoves;
   }
 
+  /// Returns a new GameBoard instance representing the state this one would
+  /// have after [player] puts a piece at [x],[y]. This method does not check if
+  /// the move was legal, and will blindly trust its input.
   GameBoard updateForMove(int x, int y, PieceType player) {
     assert(player != PieceType.empty);
     assert(isLegalMove(x, y, player));
@@ -105,12 +122,14 @@ class GameBoard {
     return newBoard;
   }
 
+  /// Returns true if it would be a legal move for [player] to put a piece down
+  /// at [x],[y].
   bool isLegalMove(int x, int y, PieceType player) {
     assert(player != PieceType.empty);
     assert(x >= 0 && x < width);
     assert(y >= 0 && y < height);
 
-    // It's occupied, yo.
+    // It's occupied, yo. No can do.
     if (_positions[y][x] != PieceType.empty) return false;
 
     // Try each of the eight cardinal directions, looking for a row of opposing
@@ -127,6 +146,12 @@ class GameBoard {
     return false;
   }
 
+  // This method walks the board in one of eight cardinal directions (determined
+  // by the [dx] and [dy] parameters) beginning at [x],[y], and attempting to
+  // determine if a move at [x],[y] by [player] would result in pieces getting
+  // flipped. If so, the method returns true, otherwise false. If [flip] is set
+  // to true, the pieces are flipped in place to their new colors before the
+  // method returns.
   bool _traversePath(
       int x, int y, int dx, int dy, PieceType player, bool flip) {
     bool foundOpponent = false;

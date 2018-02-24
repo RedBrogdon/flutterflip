@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:isolate';
+
 import 'game_board.dart';
 import 'game_board_scorer.dart';
-
-import 'dart:isolate';
-import 'dart:async';
 
 enum MoveFinderResult { moveFound, noPossibleMove }
 enum MoveFinderIsolateState { idle, loading, running }
@@ -32,6 +32,7 @@ class MoveFinderIsolateOutput {
   const MoveFinderIsolateOutput(this.result, [this.move]);
 }
 
+/// A move and its score. Used by the minimax algorithm.
 class ScoredMove {
   final int score;
   final Position move;
@@ -82,6 +83,9 @@ class MoveFinder {
     return completer.future;
   }
 
+  // This method is responsible for receiving the one and only message the
+  // isolate will send back, and using it to complete the Future returned by
+  // [findNextMove].
   void _handleMessage(dynamic message) {
     if (message is MoveFinderIsolateOutput) {
       _state = MoveFinderIsolateState.idle;
@@ -94,6 +98,8 @@ class MoveFinder {
     }
   }
 
+  // This is a recursive implementation of minimax, an algorithm so old it has
+  // its own Wikipedia page: https://en.wikipedia.org/wiki/Minimax.
   static ScoredMove _isolateRecursor(GameBoard board, PieceType scoringPlayer,
       PieceType player, int pliesRemaining) {
     List<Position> availableMoves = board.getMovesForPlayer(player);
@@ -130,14 +136,15 @@ class MoveFinder {
       if (bestMove == null ||
           (score > bestMove.score && scoringPlayer == player) ||
           (score < bestMove.score && scoringPlayer != player)) {
-        bestMove = new ScoredMove(score,
-            new Position(availableMoves[i].x, availableMoves[i].y));
+        bestMove = new ScoredMove(
+            score, new Position(availableMoves[i].x, availableMoves[i].y));
       }
     }
 
     return bestMove;
   }
 
+  // The method the isolate starts on. It's required to be static.
   static void _isolateMain(MoveFinderIsolateArguments args) {
     ScoredMove bestMove = _isolateRecursor(
         args.board, args.player, args.player, args.numPlies - 1);

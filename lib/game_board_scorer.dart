@@ -17,6 +17,8 @@ class GameBoardScorer {
     const <int>[10000, -1000, 100, 100, 100, 100, -1000, 10000],
   ];
 
+  /// Maximum and minimum values for scores, which are used in the minimax
+  /// algorithm in MoveFinder.
   static const maxScore = 1000 * 1000 * 1000;
   static const minScore = -1 * maxScore;
 
@@ -26,6 +28,9 @@ class GameBoardScorer {
     _board = board;
   }
 
+  /// Returns the score of the board, as determined by what pieces are in place,
+  /// and how valuable their locations are. This is a very simple scoring
+  /// heuristic, but it's surprisingly effective.
   int getScore(PieceType player) {
     assert(player != PieceType.empty);
     PieceType opponent = getOpponent(player);

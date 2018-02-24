@@ -9,7 +9,7 @@ import 'package:flutter/widgets.dart';
 /// may not be included at the end of a list of children. Having the
 /// [MaybeBuilder] handle this avoids an ugly ternary expression, and abstracts
 /// away what [Widget] gets used as the "I don't want to have anything here"
-/// placeholder (currently MAybeWidget uses a 0x0 Container).
+/// placeholder (currently a 0x0 [Container]).
 class MaybeBuilder extends StatelessWidget {
   final bool condition;
   final WidgetBuilder builder;

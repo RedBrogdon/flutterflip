@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
+import 'package:async/async.dart';
 import 'package:flutter/services.dart' show SystemChrome;
 import 'package:flutter/widgets.dart';
-import 'package:async/async.dart';
-
-import 'dart:async';
 
 import 'game_board.dart';
 import 'game_model.dart';
@@ -15,8 +15,8 @@ import 'move_finder.dart';
 import 'styling.dart';
 import 'thinking_indicator.dart';
 
-/// Main function for the app. Turns off the system overlays for a more game-like
-/// UI, and then runs the [Widget] tree.
+/// Main function for the app. Turns off the system overlays for a more
+/// game-like UI, and then runs the [Widget] tree.
 void main() {
   SystemChrome.setEnabledSystemUIOverlays([]);
   runApp(new FlutterFlipApp());
@@ -60,22 +60,45 @@ class _GameScreenState extends State<GameScreen> {
   Stream<GameModel> _modelStream;
 
   _GameScreenState() {
+    // Below is the combination of streams that controls the flow of the game.
+    // There are two streams of models produced by player interaction (either
+    // by restarting the game, which produces a brand new game model and sends
+    // it downstream, or tapping on one of the board locations to play a piece,
+    // which creates a new board model with the result of the move and sends it
+    // downstream. The StreamGroup combines these into a single stream, then
+    // does a little trick with asyncExpand.
+    //
+    // The function used in asyncExpand checks to see if it's the CPU's turn
+    // (white), and if so creates a [MoveFinder] to look for the best move.
+    // it awaits the result, and then creates a new [GameModel] with the result
+    // of that move and sends it downstream by yielding it. If it's still the
+    // CPU's turn after making that move (which can happen in reversi), this is
+    // repeated.
+    //
+    // The final stream of models that exits the asyncExpand call is a
+    // combination of "new game" models, models with the results of player
+    // moves, and models with the results of CPU moves. These are fed into the
+    // StreamBuilder in [build], and used to create the widgets that comprise
+    // the game's display.
     _modelStream = StreamGroup.merge([
       _userMovesController.stream,
       _restartController.stream
     ]).asyncExpand((GameModel model) async* {
       yield model;
 
-      if (model.player == PieceType.white) {
-        MoveFinder finder = new MoveFinder(model.board);
-        Position move = await finder.findNextMove(model.player, 5);
+      GameModel newModel = model;
+      while (newModel.player == PieceType.white) {
+        MoveFinder finder = new MoveFinder(newModel.board);
+        Position move = await finder.findNextMove(newModel.player, 5);
         if (move != null) {
-          yield model.updateForMove(move.x, move.y);
+          newModel = newModel.updateForMove(move.x, move.y);
+          yield newModel;
         }
       }
     });
   }
 
+  // Thou shalt tidy up thy stream controllers.
   @override
   void dispose() {
     _userMovesController.close();
@@ -108,8 +131,7 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  // _buildWidgets builds out the Widget tree using the most recent GameModel
-  // from the stream.
+  // Builds out the Widget tree using the most recent GameModel from the stream.
   Widget _buildWidgets(BuildContext context, GameModel model) {
     return new Container(
         padding: new EdgeInsets.only(top: 30.0, left: 15.0, right: 15.0),
