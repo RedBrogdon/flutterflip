@@ -16,28 +16,28 @@ abstract class Styling {
   // **** GRADIENTS AND COLORS ****
 
   static final Map<PieceType, LinearGradient> pieceGradients = {
-    PieceType.black: new LinearGradient(
+    PieceType.black: LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: <Color>[
-        new Color(0xff101010),
-        new Color(0xff303030),
+        Color(0xff101010),
+        Color(0xff303030),
       ],
     ),
-    PieceType.white: new LinearGradient(
+    PieceType.white: LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: <Color>[
-        new Color(0xffffffff),
-        new Color(0xffe0e0e0),
+        Color(0xffffffff),
+        Color(0xffe0e0e0),
       ],
     ),
-    PieceType.empty: new LinearGradient(
+    PieceType.empty: LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: <Color>[
-        new Color(0x60ffffff),
-        new Color(0x40ffffff),
+        Color(0x60ffffff),
+        Color(0x40ffffff),
       ],
     ),
   };
@@ -59,28 +59,28 @@ abstract class Styling {
 
   // **** TEXT ****
 
-  static final TextStyle scoreText = new TextStyle(
+  static final TextStyle scoreText = TextStyle(
     fontSize: 50.0,
     fontFamily: 'Roboto',
     color: const Color(0xe0ffffff),
     fontStyle: FontStyle.italic,
   );
 
-  static final TextStyle scoreLabelText = new TextStyle(
+  static final TextStyle scoreLabelText = TextStyle(
     fontSize: 20.0,
     fontFamily: 'Roboto',
     color: const Color(0xa0ffffff),
     fontStyle: FontStyle.normal,
   );
 
-  static final TextStyle resultText = new TextStyle(
+  static final TextStyle resultText = TextStyle(
     fontSize: 40.0,
     fontFamily: 'Roboto',
     color: const Color(0xe0ffffff),
     fontStyle: FontStyle.italic,
   );
 
-  static final TextStyle buttonText = new TextStyle(
+  static final TextStyle buttonText = TextStyle(
     fontSize: 20.0,
     fontFamily: 'Roboto',
     color: const Color(0xe0ffffff),
@@ -89,7 +89,7 @@ abstract class Styling {
 
   // **** BOXES ****
 
-  static final BoxDecoration activePlayerIndicator = new BoxDecoration(
+  static final BoxDecoration activePlayerIndicator = BoxDecoration(
     border: const Border(
       bottom: const BorderSide(
         width: 2.0,
@@ -98,7 +98,7 @@ abstract class Styling {
     ),
   );
 
-  static final BoxDecoration inactivePlayerIndicator = new BoxDecoration(
+  static final BoxDecoration inactivePlayerIndicator = BoxDecoration(
     border: const Border(
       bottom: const BorderSide(
         width: 2.0,

@@ -45,7 +45,7 @@ class ScoredMove {
 /// provide the heuristic.
 class MoveFinder {
   final GameBoard initialBoard;
-  final Completer<Position> completer = new Completer<Position>();
+  final Completer<Position> completer = Completer<Position>();
 
   MoveFinderIsolateState _state = MoveFinderIsolateState.idle;
 
@@ -56,7 +56,7 @@ class MoveFinder {
 
   MoveFinder(this.initialBoard)
       : assert(initialBoard != null),
-        _receivePort = new ReceivePort() {
+        _receivePort = ReceivePort() {
     _receivePort.listen(_handleMessage);
   }
 
@@ -65,7 +65,7 @@ class MoveFinder {
   /// actual work is done in an isolate, a [Future] is used as the return value.
   Future<Position> findNextMove(PieceType player, int numPlies) {
     if (!completer.isCompleted && !isRunning) {
-      final MoveFinderIsolateArguments args = new MoveFinderIsolateArguments(
+      final MoveFinderIsolateArguments args = MoveFinderIsolateArguments(
           initialBoard, player, numPlies, _receivePort.sendPort);
 
       _state = MoveFinderIsolateState.loading;
@@ -105,7 +105,7 @@ class MoveFinder {
     List<Position> availableMoves = board.getMovesForPlayer(player);
 
     if (availableMoves.length == 0) {
-      return new ScoredMove(0, null);
+      return ScoredMove(0, null);
     }
 
     int score = (scoringPlayer == player)
@@ -130,14 +130,14 @@ class MoveFinder {
             .score;
       } else {
         // Game is over or the search has reached maximum depth.
-        score = new GameBoardScorer(newBoard).getScore(scoringPlayer);
+        score = GameBoardScorer(newBoard).getScore(scoringPlayer);
       }
 
       if (bestMove == null ||
           (score > bestMove.score && scoringPlayer == player) ||
           (score < bestMove.score && scoringPlayer != player)) {
-        bestMove = new ScoredMove(
-            score, new Position(availableMoves[i].x, availableMoves[i].y));
+        bestMove = ScoredMove(
+            score, Position(availableMoves[i].x, availableMoves[i].y));
       }
     }
 
@@ -150,11 +150,11 @@ class MoveFinder {
         args.board, args.player, args.player, args.numPlies - 1);
 
     if (bestMove.move != null) {
-      args.sendPort.send(new MoveFinderIsolateOutput(
+      args.sendPort.send(MoveFinderIsolateOutput(
           MoveFinderResult.moveFound, bestMove.move));
     } else {
       args.sendPort
-          .send(new MoveFinderIsolateOutput(MoveFinderResult.noPossibleMove));
+          .send(MoveFinderIsolateOutput(MoveFinderResult.noPossibleMove));
     }
   }
 }

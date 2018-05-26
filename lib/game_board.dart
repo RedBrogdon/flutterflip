@@ -24,18 +24,18 @@ class Position {
 class GameBoard {
   static final int height = 8;
   static final int width = 8;
-  final _positions = new List<List<PieceType>>(height);
+  final _positions = List<List<PieceType>>(height);
 
   // Because calculating out all the available moves for a player can be
   // expensive, they're cached here.
   Map<PieceType, List<Position>> _availableMoveCache =
-      new Map<PieceType, List<Position>>();
+      Map<PieceType, List<Position>>();
 
   /// Default constructor, which creates a board with pieces in starting
   /// position.
   GameBoard() {
     for (int y = 0; y < width; y++) {
-      _positions[y] = new List<PieceType>(height);
+      _positions[y] = List<PieceType>(height);
       for (int x = 0; x < width; x++) {
         _positions[y][x] = PieceType.empty;
       }
@@ -51,7 +51,7 @@ class GameBoard {
   GameBoard.fromGameBoard(GameBoard other) {
     // Copy constructor.
     for (int y = 0; y < height; y++) {
-      _positions[y] = new List<PieceType>(width);
+      _positions[y] = List<PieceType>(width);
       for (int x = 0; x < width; x++) {
         _positions[y][x] = other._positions[y][x];
       }
@@ -94,7 +94,7 @@ class GameBoard {
     for (int x = 0; x < width; x++) {
       for (int y = 0; y < width; y++) {
         if (isLegalMove(x, y, player)) {
-          legalMoves.add(new Position(x, y));
+          legalMoves.add(Position(x, y));
         }
       }
     }
@@ -109,7 +109,7 @@ class GameBoard {
   GameBoard updateForMove(int x, int y, PieceType player) {
     assert(player != PieceType.empty);
     assert(isLegalMove(x, y, player));
-    GameBoard newBoard = new GameBoard.fromGameBoard(this);
+    GameBoard newBoard = GameBoard.fromGameBoard(this);
     newBoard._positions[y][x] = player;
 
     for (int dx = -1; dx <= 1; dx++) {

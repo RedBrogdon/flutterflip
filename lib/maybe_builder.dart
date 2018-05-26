@@ -21,7 +21,7 @@ class MaybeBuilder extends StatelessWidget {
     if (condition) {
       return builder(context);
     } else {
-      return new Container(height: 0.0, width: 0.0);
+      return Container(height: 0.0, width: 0.0);
     }
   }
 }

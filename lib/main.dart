@@ -23,7 +23,7 @@ void main() {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  runApp(new FlutterFlipApp());
+  runApp(FlutterFlipApp());
 }
 
 /// The App class. Unlike most Flutter apps, this one does not use Material
@@ -31,13 +31,13 @@ void main() {
 class FlutterFlipApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new WidgetsApp(
-      color: new Color(0xffffffff), // Mandatory background color.
+    return WidgetsApp(
+      color: Color(0xffffffff), // Mandatory background color.
       onGenerateRoute: (RouteSettings settings) {
-        return new PageRouteBuilder(
+        return PageRouteBuilder(
             settings: settings,
             pageBuilder: (context, animation, secondaryAnimation) =>
-                new GameScreen());
+                GameScreen());
       },
     );
   }
@@ -47,7 +47,7 @@ class FlutterFlipApp extends StatelessWidget {
 /// display, from scores to board state and everything in between.
 class GameScreen extends StatefulWidget {
   @override
-  State createState() => new _GameScreenState();
+  State createState() => _GameScreenState();
 }
 
 /// State class for [GameScreen].
@@ -58,9 +58,9 @@ class GameScreen extends StatefulWidget {
 /// of models to build out its [Widget] tree.
 class _GameScreenState extends State<GameScreen> {
   final StreamController<GameModel> _userMovesController =
-      new StreamController<GameModel>();
+      StreamController<GameModel>();
   final StreamController<GameModel> _restartController =
-      new StreamController<GameModel>();
+      StreamController<GameModel>();
   Stream<GameModel> _modelStream;
 
   _GameScreenState() {
@@ -92,7 +92,7 @@ class _GameScreenState extends State<GameScreen> {
 
       GameModel newModel = model;
       while (newModel.player == PieceType.white) {
-        MoveFinder finder = new MoveFinder(newModel.board);
+        MoveFinder finder = MoveFinder(newModel.board);
         Position move = await finder.findNextMove(newModel.player, 5);
         if (move != null) {
           newModel = newModel.updateForMove(move.x, move.y);
@@ -114,14 +114,14 @@ class _GameScreenState extends State<GameScreen> {
   /// details to _buildWidgets.
   @override
   Widget build(BuildContext context) {
-    return new StreamBuilder(
+    return StreamBuilder(
       stream: _modelStream,
       builder: (context, snapshot) {
         return _buildWidgets(
           context,
           snapshot.hasData
               ? snapshot.data
-              : new GameModel(board: new GameBoard()),
+              : GameModel(board: GameBoard()),
         );
       },
     );
@@ -139,10 +139,10 @@ class _GameScreenState extends State<GameScreen> {
 
   // Builds out the Widget tree using the most recent GameModel from the stream.
   Widget _buildWidgets(BuildContext context, GameModel model) {
-    return new Container(
-      padding: new EdgeInsets.only(top: 30.0, left: 15.0, right: 15.0),
-      decoration: new BoxDecoration(
-        gradient: new LinearGradient(
+    return Container(
+      padding: EdgeInsets.only(top: 30.0, left: 15.0, right: 15.0),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: <Color>[
@@ -151,24 +151,24 @@ class _GameScreenState extends State<GameScreen> {
           ],
         ),
       ),
-      child: new Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          new Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              new DecoratedBox(
+              DecoratedBox(
                 decoration: (model.player == PieceType.black)
                     ? Styling.activePlayerIndicator
                     : Styling.inactivePlayerIndicator,
-                child: new Column(
+                child: Column(
                   children: <Widget>[
-                    new Text(
+                    Text(
                       "black",
                       textAlign: TextAlign.center,
                       style: Styling.scoreLabelText,
                     ),
-                    new Text(
+                    Text(
                       "${model.blackScore}",
                       textAlign: TextAlign.center,
                       style: Styling.scoreText,
@@ -176,18 +176,18 @@ class _GameScreenState extends State<GameScreen> {
                   ],
                 ),
               ),
-              new Padding(
+              Padding(
                 padding: const EdgeInsets.only(left: 200.0),
-                child: new DecoratedBox(
+                child: DecoratedBox(
                   decoration: (model.player == PieceType.white)
                       ? Styling.activePlayerIndicator
                       : Styling.inactivePlayerIndicator,
-                  child: new Column(
+                  child: Column(
                     children: <Widget>[
-                      new Text("white",
+                      Text("white",
                           textAlign: TextAlign.center,
                           style: Styling.scoreLabelText),
-                      new Text("${model.whiteScore}",
+                      Text("${model.whiteScore}",
                           textAlign: TextAlign.center,
                           style: Styling.scoreText),
                     ],
@@ -196,42 +196,42 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ],
           ),
-          new Container(
-            margin: new EdgeInsets.only(top: 20.0),
+          Container(
+            margin: EdgeInsets.only(top: 20.0),
             height: 10.0,
-            child: new AnimatedOpacity(
+            child: AnimatedOpacity(
               opacity: (model.player == PieceType.white) ? 1.0 : 0.0,
               duration: Styling.thinkingFadeDuration,
-              child: new ThinkingIndicator(
+              child: ThinkingIndicator(
                 color: Styling.thinkingColor,
                 size: Styling.thinkingSize,
               ),
             ),
           ),
-          new Container(
-            margin: new EdgeInsets.only(
+          Container(
+            margin: EdgeInsets.only(
               top: 20.0,
             ),
-            child: new Column(
-              children: new List<Widget>.generate(
+            child: Column(
+              children: List<Widget>.generate(
                 GameBoard.height,
-                (y) => new Row(
+                (y) => Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: new List<Widget>.generate(
+                      children: List<Widget>.generate(
                         GameBoard.width,
-                        (x) => new AnimatedContainer(
-                              duration: new Duration(
+                        (x) => AnimatedContainer(
+                              duration: Duration(
                                 milliseconds: 500,
                               ),
-                              margin: new EdgeInsets.all(1.0),
-                              decoration: new BoxDecoration(
+                              margin: EdgeInsets.all(1.0),
+                              decoration: BoxDecoration(
                                 gradient: Styling.pieceGradients[
                                     model.board.getPieceAtLocation(x, y)],
                               ),
-                              child: new SizedBox(
+                              child: SizedBox(
                                 width: 40.0,
                                 height: 40.0,
-                                child: new GestureDetector(
+                                child: GestureDetector(
                                   onTap: () {
                                     _attemptUserMove(model, x, y);
                                   },
@@ -243,44 +243,44 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ),
           ),
-          new MaybeBuilder(
+          MaybeBuilder(
             condition: model.gameIsOver,
             builder: (context) {
-              return new Column(
+              return Column(
                 children: <Widget>[
-                  new Padding(
+                  Padding(
                     padding: const EdgeInsets.only(
                       top: 30.0,
                       left: 10.0,
                       right: 10.0,
                       bottom: 20.0,
                     ),
-                    child: new Text(
+                    child: Text(
                       model.gameResultString,
                       style: Styling.resultText,
                     ),
                   ),
-                  new GestureDetector(
+                  GestureDetector(
                     onTap: () {
                       _restartController.add(
-                        new GameModel(
-                          board: new GameBoard(),
+                        GameModel(
+                          board: GameBoard(),
                         ),
                       );
                     },
-                    child: new Container(
-                      decoration: new BoxDecoration(
+                    child: Container(
+                      decoration: BoxDecoration(
                           border:
-                              new Border.all(color: const Color(0xe0ffffff)),
-                          borderRadius: new BorderRadius.all(
+                              Border.all(color: const Color(0xe0ffffff)),
+                          borderRadius: BorderRadius.all(
                               const Radius.circular(15.0))),
                       padding: const EdgeInsets.symmetric(
                         vertical: 5.0,
                         horizontal: 15.0,
                       ),
-                      child: new Padding(
+                      child: Padding(
                         padding: const EdgeInsets.only(bottom: 4.0),
-                        child: new Text(
+                        child: Text(
                           "new game",
                           style: Styling.buttonText,
                         ),

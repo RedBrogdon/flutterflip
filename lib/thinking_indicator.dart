@@ -15,7 +15,7 @@ class ThinkingIndicator extends StatefulWidget {
       : super(key: key);
 
   @override
-  State createState() => new _ThinkingIndicatorState();
+  State createState() => _ThinkingIndicatorState();
 }
 
 class _ThinkingIndicatorState extends State<ThinkingIndicator>
@@ -26,7 +26,7 @@ class _ThinkingIndicatorState extends State<ThinkingIndicator>
   @override
   void initState() {
     super.initState();
-    _thinkingController = new AnimationController(
+    _thinkingController = AnimationController(
         duration: const Duration(milliseconds: 500), vsync: this)
       ..addStatusListener((status) {
         // This bit ensures that the animation reverses course rather than
@@ -34,8 +34,8 @@ class _ThinkingIndicatorState extends State<ThinkingIndicator>
         if (status == AnimationStatus.completed) _thinkingController.reverse();
         if (status == AnimationStatus.dismissed) _thinkingController.forward();
       });
-    _thinkingAnimation = new Tween(begin: 0.0, end: widget.size).animate(
-        new CurvedAnimation(parent: _thinkingController, curve: Curves.easeOut))
+    _thinkingAnimation = Tween(begin: 0.0, end: widget.size).animate(
+        CurvedAnimation(parent: _thinkingController, curve: Curves.easeOut))
       ..addListener(() {
         setState(() {});
       });
@@ -49,23 +49,23 @@ class _ThinkingIndicatorState extends State<ThinkingIndicator>
   }
 
   Widget build(BuildContext context) {
-    return new Center(
-      child: new SizedBox(
-        child: new Row(
+    return Center(
+      child: SizedBox(
+        child: Row(
             mainAxisSize: MainAxisSize.min,
-            children: new List<Widget>.generate(
+            children: List<Widget>.generate(
                 5,
-                (_) => new Padding(
-                    padding: new EdgeInsets.symmetric(
+                (_) => Padding(
+                    padding: EdgeInsets.symmetric(
                         horizontal: _thinkingAnimation.value),
-                    child: new Container(
+                    child: Container(
                         width: widget.size,
                         height: widget.size,
-                        decoration: new BoxDecoration(
+                        decoration: BoxDecoration(
                           border:
-                              new Border.all(color: widget.color, width: 2.0),
+                              Border.all(color: widget.color, width: 2.0),
                           borderRadius:
-                              new BorderRadius.all(const Radius.circular(5.0)),
+                              BorderRadius.all(const Radius.circular(5.0)),
                         )))).toList()),
       ),
     );

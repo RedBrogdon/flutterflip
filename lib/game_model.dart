@@ -50,6 +50,6 @@ class GameModel {
       nextPlayer = PieceType.empty;
     }
 
-    return new GameModel(board: newBoard, player: nextPlayer);
+    return GameModel(board: newBoard, player: nextPlayer);
   }
 }
