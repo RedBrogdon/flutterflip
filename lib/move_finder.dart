@@ -70,9 +70,9 @@ class MoveFinder {
 
       _state = MoveFinderIsolateState.loading;
 
-      Isolate.spawn(_isolateMain, args).then<Null>((Isolate isolate) {
+      Isolate.spawn(_isolateMain, args).then((Isolate isolate) {
         if (!isRunning) {
-          isolate.kill(priority: Isolate.IMMEDIATE);
+          isolate.kill(priority: Isolate.immediate);
         } else {
           _state = MoveFinderIsolateState.running;
           _isolate = isolate;

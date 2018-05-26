@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:async/async.dart';
-import 'package:flutter/services.dart' show SystemChrome;
+import 'package:flutter/services.dart' show SystemChrome, DeviceOrientation;
 import 'package:flutter/widgets.dart';
 
 import 'game_board.dart';
@@ -15,10 +15,14 @@ import 'move_finder.dart';
 import 'styling.dart';
 import 'thinking_indicator.dart';
 
-/// Main function for the app. Turns off the system overlays for a more
-/// game-like UI, and then runs the [Widget] tree.
+/// Main function for the app. Turns off the system overlays and locks portrait
+/// orientation for a more game-like UI, and then runs the [Widget] tree.
 void main() {
   SystemChrome.setEnabledSystemUIOverlays([]);
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   runApp(new FlutterFlipApp());
 }
 
@@ -111,14 +115,16 @@ class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     return new StreamBuilder(
-        stream: _modelStream,
-        builder: (context, snapshot) {
-          return _buildWidgets(
-              context,
-              snapshot.hasData
-                  ? snapshot.data
-                  : new GameModel(board: new GameBoard()));
-        });
+      stream: _modelStream,
+      builder: (context, snapshot) {
+        return _buildWidgets(
+          context,
+          snapshot.hasData
+              ? snapshot.data
+              : new GameModel(board: new GameBoard()),
+        );
+      },
+    );
   }
 
   // Called when the user taps on the game's board display. If it's the player's
@@ -134,130 +140,159 @@ class _GameScreenState extends State<GameScreen> {
   // Builds out the Widget tree using the most recent GameModel from the stream.
   Widget _buildWidgets(BuildContext context, GameModel model) {
     return new Container(
-        padding: new EdgeInsets.only(top: 30.0, left: 15.0, right: 15.0),
-        decoration: new BoxDecoration(
-          gradient: new LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: <Color>[
-              Styling.backgroundStartColor,
-              Styling.backgroundFinishColor
+      padding: new EdgeInsets.only(top: 30.0, left: 15.0, right: 15.0),
+      decoration: new BoxDecoration(
+        gradient: new LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: <Color>[
+            Styling.backgroundStartColor,
+            Styling.backgroundFinishColor,
+          ],
+        ),
+      ),
+      child: new Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          new Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              new DecoratedBox(
+                decoration: (model.player == PieceType.black)
+                    ? Styling.activePlayerIndicator
+                    : Styling.inactivePlayerIndicator,
+                child: new Column(
+                  children: <Widget>[
+                    new Text(
+                      "black",
+                      textAlign: TextAlign.center,
+                      style: Styling.scoreLabelText,
+                    ),
+                    new Text(
+                      "${model.blackScore}",
+                      textAlign: TextAlign.center,
+                      style: Styling.scoreText,
+                    )
+                  ],
+                ),
+              ),
+              new Padding(
+                padding: const EdgeInsets.only(left: 200.0),
+                child: new DecoratedBox(
+                  decoration: (model.player == PieceType.white)
+                      ? Styling.activePlayerIndicator
+                      : Styling.inactivePlayerIndicator,
+                  child: new Column(
+                    children: <Widget>[
+                      new Text("white",
+                          textAlign: TextAlign.center,
+                          style: Styling.scoreLabelText),
+                      new Text("${model.whiteScore}",
+                          textAlign: TextAlign.center,
+                          style: Styling.scoreText),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
-        ),
-        child: new Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              new Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    new DecoratedBox(
-                      decoration: (model.player == PieceType.black)
-                          ? Styling.activePlayerIndicator
-                          : Styling.inactivePlayerIndicator,
-                      child: new Column(children: <Widget>[
-                        new Text("black",
-                            textAlign: TextAlign.center,
-                            style: Styling.scoreLabelText),
-                        new Text("${model.blackScore}",
-                            textAlign: TextAlign.center,
-                            style: Styling.scoreText)
-                      ]),
-                    ),
-                    new Padding(
-                      padding: const EdgeInsets.only(left: 200.0),
-                      child: new DecoratedBox(
-                        decoration: (model.player == PieceType.white)
-                            ? Styling.activePlayerIndicator
-                            : Styling.inactivePlayerIndicator,
-                        child: new Column(
-                          children: <Widget>[
-                            new Text("white",
-                                textAlign: TextAlign.center,
-                                style: Styling.scoreLabelText),
-                            new Text("${model.whiteScore}",
-                                textAlign: TextAlign.center,
-                                style: Styling.scoreText),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ]),
-              new Container(
-                  margin: new EdgeInsets.only(top: 20.0),
-                  height: 10.0,
-                  child: new AnimatedOpacity(
-                      opacity: (model.player == PieceType.white) ? 1.0 : 0.0,
-                      duration: Styling.thinkingFadeDuration,
-                      child: new ThinkingIndicator(
-                        color: Styling.thinkingColor,
-                        size: Styling.thinkingSize,
-                      ))),
-              new Container(
-                  margin: new EdgeInsets.only(
-                    top: 20.0,
-                  ),
-                  child: new Column(
+          new Container(
+            margin: new EdgeInsets.only(top: 20.0),
+            height: 10.0,
+            child: new AnimatedOpacity(
+              opacity: (model.player == PieceType.white) ? 1.0 : 0.0,
+              duration: Styling.thinkingFadeDuration,
+              child: new ThinkingIndicator(
+                color: Styling.thinkingColor,
+                size: Styling.thinkingSize,
+              ),
+            ),
+          ),
+          new Container(
+            margin: new EdgeInsets.only(
+              top: 20.0,
+            ),
+            child: new Column(
+              children: new List<Widget>.generate(
+                GameBoard.height,
+                (y) => new Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: new List<Widget>.generate(
-                          GameBoard.height,
-                          (y) => new Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: new List<Widget>.generate(
-                                  GameBoard.width,
-                                  (x) => new AnimatedContainer(
-                                      duration: new Duration(
-                                        milliseconds: 500,
-                                      ),
-                                      margin: new EdgeInsets.all(1.0),
-                                      decoration: new BoxDecoration(
-                                        gradient: Styling.pieceGradients[model
-                                            .board
-                                            .getPieceAtLocation(x, y)],
-                                      ),
-                                      child: new SizedBox(
-                                          width: 40.0,
-                                          height: 40.0,
-                                          child: new GestureDetector(onTap: () {
-                                            _attemptUserMove(model, x, y);
-                                          }))),
-                                ),
-                              )))),
-              new MaybeBuilder(
-                  condition: model.gameIsOver,
-                  builder: (context) {
-                    return new Column(children: <Widget>[
-                      new Padding(
-                        padding: const EdgeInsets.only(
-                          top: 30.0,
-                          left: 10.0,
-                          right: 10.0,
-                          bottom: 20.0,
-                        ),
-                        child: new Text(model.gameResultString,
-                            style: Styling.resultText),
-                      ),
-                      new GestureDetector(
-                          onTap: () {
-                            _restartController.add(new GameModel(
-                              board: new GameBoard(),
-                            ));
-                          },
-                          child: new Container(
-                              decoration: new BoxDecoration(
-                                  border: new Border.all(
-                                      color: const Color(0xe0ffffff)),
-                                  borderRadius: new BorderRadius.all(
-                                      const Radius.circular(15.0))),
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 5.0,
-                                horizontal: 15.0,
+                        GameBoard.width,
+                        (x) => new AnimatedContainer(
+                              duration: new Duration(
+                                milliseconds: 500,
                               ),
-                              child: new Text(
-                                "new game",
-                                style: Styling.buttonText,
-                              )))
-                    ]);
-                  })
-            ]));
+                              margin: new EdgeInsets.all(1.0),
+                              decoration: new BoxDecoration(
+                                gradient: Styling.pieceGradients[
+                                    model.board.getPieceAtLocation(x, y)],
+                              ),
+                              child: new SizedBox(
+                                width: 40.0,
+                                height: 40.0,
+                                child: new GestureDetector(
+                                  onTap: () {
+                                    _attemptUserMove(model, x, y);
+                                  },
+                                ),
+                              ),
+                            ),
+                      ),
+                    ),
+              ),
+            ),
+          ),
+          new MaybeBuilder(
+            condition: model.gameIsOver,
+            builder: (context) {
+              return new Column(
+                children: <Widget>[
+                  new Padding(
+                    padding: const EdgeInsets.only(
+                      top: 30.0,
+                      left: 10.0,
+                      right: 10.0,
+                      bottom: 20.0,
+                    ),
+                    child: new Text(
+                      model.gameResultString,
+                      style: Styling.resultText,
+                    ),
+                  ),
+                  new GestureDetector(
+                    onTap: () {
+                      _restartController.add(
+                        new GameModel(
+                          board: new GameBoard(),
+                        ),
+                      );
+                    },
+                    child: new Container(
+                      decoration: new BoxDecoration(
+                          border:
+                              new Border.all(color: const Color(0xe0ffffff)),
+                          borderRadius: new BorderRadius.all(
+                              const Radius.circular(15.0))),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 5.0,
+                        horizontal: 15.0,
+                      ),
+                      child: new Padding(
+                        padding: const EdgeInsets.only(bottom: 4.0),
+                        child: new Text(
+                          "new game",
+                          style: Styling.buttonText,
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              );
+            },
+          )
+        ],
+      ),
+    );
   }
 }

@@ -60,42 +60,50 @@ abstract class Styling {
   // **** TEXT ****
 
   static final TextStyle scoreText = new TextStyle(
-      fontSize: 50.0,
-      fontFamily: 'Roboto',
-      decoration: TextDecoration.none,
-      color: const Color(0xe0ffffff),
-      fontStyle: FontStyle.italic);
+    fontSize: 50.0,
+    fontFamily: 'Roboto',
+    color: const Color(0xe0ffffff),
+    fontStyle: FontStyle.italic,
+  );
 
   static final TextStyle scoreLabelText = new TextStyle(
-      fontSize: 20.0,
-      fontFamily: 'Roboto',
-      decoration: TextDecoration.none,
-      color: const Color(0xa0ffffff),
-      fontStyle: FontStyle.normal);
+    fontSize: 20.0,
+    fontFamily: 'Roboto',
+    color: const Color(0xa0ffffff),
+    fontStyle: FontStyle.normal,
+  );
 
   static final TextStyle resultText = new TextStyle(
-      fontSize: 40.0,
-      fontFamily: 'Roboto',
-      decoration: TextDecoration.none,
-      color: const Color(0xe0ffffff),
-      fontStyle: FontStyle.italic);
+    fontSize: 40.0,
+    fontFamily: 'Roboto',
+    color: const Color(0xe0ffffff),
+    fontStyle: FontStyle.italic,
+  );
 
   static final TextStyle buttonText = new TextStyle(
-      fontSize: 20.0,
-      fontFamily: 'Roboto',
-      decoration: TextDecoration.none,
-      color: const Color(0xe0ffffff),
-      fontStyle: FontStyle.italic);
+    fontSize: 20.0,
+    fontFamily: 'Roboto',
+    color: const Color(0xe0ffffff),
+    fontStyle: FontStyle.italic,
+  );
 
   // **** BOXES ****
 
   static final BoxDecoration activePlayerIndicator = new BoxDecoration(
-      border: const Border(
-          bottom:
-              const BorderSide(width: 2.0, color: const Color(0xffffffff))));
+    border: const Border(
+      bottom: const BorderSide(
+        width: 2.0,
+        color: const Color(0xffffffff),
+      ),
+    ),
+  );
 
   static final BoxDecoration inactivePlayerIndicator = new BoxDecoration(
-      border: const Border(
-          bottom:
-              const BorderSide(width: 2.0, color: const Color(0x00000000))));
+    border: const Border(
+      bottom: const BorderSide(
+        width: 2.0,
+        color: const Color(0x00000000),
+      ),
+    ),
+  );
 }
