@@ -35,9 +35,9 @@ class FlutterFlipApp extends StatelessWidget {
       color: Color(0xffffffff), // Mandatory background color.
       onGenerateRoute: (RouteSettings settings) {
         return PageRouteBuilder(
-            settings: settings,
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                GameScreen());
+          settings: settings,
+          pageBuilder: (context, animation, secondaryAnimation) => GameScreen(),
+        );
       },
     );
   }
@@ -86,7 +86,7 @@ class _GameScreenState extends State<GameScreen> {
     // the game's display.
     _modelStream = StreamGroup.merge([
       _userMovesController.stream,
-      _restartController.stream
+      _restartController.stream,
     ]).asyncExpand((GameModel model) async* {
       yield model;
 
@@ -119,9 +119,7 @@ class _GameScreenState extends State<GameScreen> {
       builder: (context, snapshot) {
         return _buildWidgets(
           context,
-          snapshot.hasData
-              ? snapshot.data
-              : GameModel(board: GameBoard()),
+          snapshot.hasData ? snapshot.data : GameModel(board: GameBoard()),
         );
       },
     );
@@ -270,10 +268,9 @@ class _GameScreenState extends State<GameScreen> {
                     },
                     child: Container(
                       decoration: BoxDecoration(
-                          border:
-                              Border.all(color: const Color(0xe0ffffff)),
-                          borderRadius: BorderRadius.all(
-                              const Radius.circular(15.0))),
+                          border: Border.all(color: const Color(0xe0ffffff)),
+                          borderRadius:
+                              BorderRadius.all(const Radius.circular(15.0))),
                       padding: const EdgeInsets.symmetric(
                         vertical: 5.0,
                         horizontal: 15.0,

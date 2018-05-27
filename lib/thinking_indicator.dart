@@ -52,21 +52,24 @@ class _ThinkingIndicatorState extends State<ThinkingIndicator>
     return Center(
       child: SizedBox(
         child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: List<Widget>.generate(
-                5,
-                (_) => Padding(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: _thinkingAnimation.value),
-                    child: Container(
-                        width: widget.size,
-                        height: widget.size,
-                        decoration: BoxDecoration(
-                          border:
-                              Border.all(color: widget.color, width: 2.0),
-                          borderRadius:
-                              BorderRadius.all(const Radius.circular(5.0)),
-                        )))).toList()),
+          mainAxisSize: MainAxisSize.min,
+          children: List<Widget>.generate(
+            5,
+            (_) => Padding(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: _thinkingAnimation.value),
+                  child: Container(
+                    width: widget.size,
+                    height: widget.size,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: widget.color, width: 2.0),
+                      borderRadius:
+                          BorderRadius.all(const Radius.circular(5.0)),
+                    ),
+                  ),
+                ),
+          ),
+        ),
       ),
     );
   }
