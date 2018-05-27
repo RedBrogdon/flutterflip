@@ -28,9 +28,55 @@ class ScoredMove {
 // The [compute] function requires a top-level method as its first argument.
 // This is that method for [MoveFinder].
 Position _findNextMove(MoveSearchArgs args) {
-  ScoredMove bestMove = MoveFinder._performSearchPly(
+  ScoredMove bestMove = _performSearchPly(
       args.board, args.player, args.player, args.numPlies - 1);
   return bestMove.move;
+}
+
+// This is a recursive implementation of minimax, an algorithm so old it has
+// its own Wikipedia page: https://wikipedia.org/wiki/Minimax.
+ScoredMove _performSearchPly(GameBoard board, PieceType scoringPlayer,
+    PieceType player, int pliesRemaining) {
+  List<Position> availableMoves = board.getMovesForPlayer(player);
+
+  if (availableMoves.length == 0) {
+    return ScoredMove(0, null);
+  }
+
+  int score = (scoringPlayer == player)
+      ? GameBoardScorer.minScore
+      : GameBoardScorer.maxScore;
+  ScoredMove bestMove;
+
+  for (int i = 0; i < availableMoves.length; i++) {
+    GameBoard newBoard =
+        board.updateForMove(availableMoves[i].x, availableMoves[i].y, player);
+    if (pliesRemaining > 0 &&
+        newBoard.getMovesForPlayer(getOpponent(player)).length > 0) {
+      // Opponent has next turn.
+      score = _performSearchPly(
+              newBoard, scoringPlayer, getOpponent(player), pliesRemaining - 1)
+          .score;
+    } else if (pliesRemaining > 0 &&
+        newBoard.getMovesForPlayer(player).length > 0) {
+      // Opponent has no moves; player gets another turn.
+      score =
+          _performSearchPly(newBoard, scoringPlayer, player, pliesRemaining - 1)
+              .score;
+    } else {
+      // Game is over or the search has reached maximum depth.
+      score = GameBoardScorer(newBoard).getScore(scoringPlayer);
+    }
+
+    if (bestMove == null ||
+        (score > bestMove.score && scoringPlayer == player) ||
+        (score < bestMove.score && scoringPlayer != player)) {
+      bestMove =
+          ScoredMove(score, Position(availableMoves[i].x, availableMoves[i].y));
+    }
+  }
+
+  return bestMove;
 }
 
 /// The [MoveFinder] class exists to provide its [findNextMove] method, which
@@ -38,7 +84,6 @@ Position _findNextMove(MoveSearchArgs args) {
 /// [initialBoard] a [GameBoardScorer] to provide the heuristic.
 class MoveFinder {
   final GameBoard initialBoard;
-  final Completer<Position> completer = Completer<Position>();
 
   MoveFinder(this.initialBoard) : assert(initialBoard != null);
 
@@ -54,51 +99,5 @@ class MoveFinder {
         numPlies: numPlies,
       ),
     );
-  }
-
-  // This is a recursive implementation of minimax, an algorithm so old it has
-  // its own Wikipedia page: https://wikipedia.org/wiki/Minimax.
-  static ScoredMove _performSearchPly(GameBoard board, PieceType scoringPlayer,
-      PieceType player, int pliesRemaining) {
-    List<Position> availableMoves = board.getMovesForPlayer(player);
-
-    if (availableMoves.length == 0) {
-      return ScoredMove(0, null);
-    }
-
-    int score = (scoringPlayer == player)
-        ? GameBoardScorer.minScore
-        : GameBoardScorer.maxScore;
-    ScoredMove bestMove;
-
-    for (int i = 0; i < availableMoves.length; i++) {
-      GameBoard newBoard =
-          board.updateForMove(availableMoves[i].x, availableMoves[i].y, player);
-      if (pliesRemaining > 0 &&
-          newBoard.getMovesForPlayer(getOpponent(player)).length > 0) {
-        // Opponent has next turn.
-        score = _performSearchPly(newBoard, scoringPlayer, getOpponent(player),
-                pliesRemaining - 1)
-            .score;
-      } else if (pliesRemaining > 0 &&
-          newBoard.getMovesForPlayer(player).length > 0) {
-        // Opponent has no moves; player gets another turn.
-        score = _performSearchPly(
-                newBoard, scoringPlayer, player, pliesRemaining - 1)
-            .score;
-      } else {
-        // Game is over or the search has reached maximum depth.
-        score = GameBoardScorer(newBoard).getScore(scoringPlayer);
-      }
-
-      if (bestMove == null ||
-          (score > bestMove.score && scoringPlayer == player) ||
-          (score < bestMove.score && scoringPlayer != player)) {
-        bestMove = ScoredMove(
-            score, Position(availableMoves[i].x, availableMoves[i].y));
-      }
-    }
-
-    return bestMove;
   }
 }
