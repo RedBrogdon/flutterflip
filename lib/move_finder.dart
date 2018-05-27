@@ -3,33 +3,18 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:isolate';
+
+import 'package:flutter/foundation.dart';
 
 import 'game_board.dart';
 import 'game_board_scorer.dart';
 
-enum MoveFinderResult { moveFound, noPossibleMove }
-enum MoveFinderIsolateState { idle, loading, running }
-
-/// This class holds all the data needed by the Dart isolate that's responsible
-/// for searching the tree of possible moves.
-class MoveFinderIsolateArguments {
-  MoveFinderIsolateArguments(
-      this.board, this.player, this.numPlies, this.sendPort);
+class MoveSearchArgs {
+  MoveSearchArgs({this.board, this.player, this.numPlies});
 
   final GameBoard board;
   final PieceType player;
   final int numPlies;
-  final SendPort sendPort;
-}
-
-/// This is the data the isolate sends back once it's finished looking for the
-/// best available move.
-class MoveFinderIsolateOutput {
-  final MoveFinderResult result;
-  final Position move;
-
-  const MoveFinderIsolateOutput(this.result, [this.move]);
 }
 
 /// A move and its score. Used by the minimax algorithm.
@@ -40,67 +25,40 @@ class ScoredMove {
   const ScoredMove(this.score, this.move);
 }
 
-/// The [MoveFinder] class encapsulates an isolate that will perform a minimax
-/// for the best available move on a [GameBoard] using a [GameBoardScorer] to
-/// provide the heuristic.
+// The [compute] function requires a top-level method as its first argument.
+// This is that method for [MoveFinder].
+Position _findNextMove(MoveSearchArgs args) {
+  ScoredMove bestMove = MoveFinder._performSearchPly(
+      args.board, args.player, args.player, args.numPlies - 1);
+  return bestMove.move;
+}
+
+/// The [MoveFinder] class exists to provide its [findNextMove] method, which
+/// uses the minimax algorithm to look for the best available move on
+/// [initialBoard] a [GameBoardScorer] to provide the heuristic.
 class MoveFinder {
   final GameBoard initialBoard;
   final Completer<Position> completer = Completer<Position>();
 
-  MoveFinderIsolateState _state = MoveFinderIsolateState.idle;
-
-  bool get isRunning => _state != MoveFinderIsolateState.idle;
-
-  final ReceivePort _receivePort;
-  Isolate _isolate;
-
-  MoveFinder(this.initialBoard)
-      : assert(initialBoard != null),
-        _receivePort = ReceivePort() {
-    _receivePort.listen(_handleMessage);
-  }
+  MoveFinder(this.initialBoard) : assert(initialBoard != null);
 
   /// Searches the tree of possible moves on [initialBoard] to a depth of
   /// [numPlies], looking for the best possible move for [player]. Because the
   /// actual work is done in an isolate, a [Future] is used as the return value.
   Future<Position> findNextMove(PieceType player, int numPlies) {
-    if (!completer.isCompleted && !isRunning) {
-      final MoveFinderIsolateArguments args = MoveFinderIsolateArguments(
-          initialBoard, player, numPlies, _receivePort.sendPort);
-
-      _state = MoveFinderIsolateState.loading;
-
-      Isolate.spawn(_isolateMain, args).then((Isolate isolate) {
-        if (!isRunning) {
-          isolate.kill(priority: Isolate.immediate);
-        } else {
-          _state = MoveFinderIsolateState.running;
-          _isolate = isolate;
-        }
-      });
-    }
-
-    return completer.future;
-  }
-
-  // This method is responsible for receiving the one and only message the
-  // isolate will send back, and using it to complete the Future returned by
-  // [findNextMove].
-  void _handleMessage(dynamic message) {
-    if (message is MoveFinderIsolateOutput) {
-      _state = MoveFinderIsolateState.idle;
-      _isolate = null;
-      if (message.result == MoveFinderResult.moveFound) {
-        completer.complete(message.move);
-      } else {
-        completer.completeError(null);
-      }
-    }
+    return compute(
+      _findNextMove,
+      MoveSearchArgs(
+        board: this.initialBoard,
+        player: player,
+        numPlies: numPlies,
+      ),
+    );
   }
 
   // This is a recursive implementation of minimax, an algorithm so old it has
-  // its own Wikipedia page: https://en.wikipedia.org/wiki/Minimax.
-  static ScoredMove _isolateRecursor(GameBoard board, PieceType scoringPlayer,
+  // its own Wikipedia page: https://wikipedia.org/wiki/Minimax.
+  static ScoredMove _performSearchPly(GameBoard board, PieceType scoringPlayer,
       PieceType player, int pliesRemaining) {
     List<Position> availableMoves = board.getMovesForPlayer(player);
 
@@ -119,13 +77,13 @@ class MoveFinder {
       if (pliesRemaining > 0 &&
           newBoard.getMovesForPlayer(getOpponent(player)).length > 0) {
         // Opponent has next turn.
-        score = _isolateRecursor(newBoard, scoringPlayer, getOpponent(player),
+        score = _performSearchPly(newBoard, scoringPlayer, getOpponent(player),
                 pliesRemaining - 1)
             .score;
       } else if (pliesRemaining > 0 &&
           newBoard.getMovesForPlayer(player).length > 0) {
         // Opponent has no moves; player gets another turn.
-        score = _isolateRecursor(
+        score = _performSearchPly(
                 newBoard, scoringPlayer, player, pliesRemaining - 1)
             .score;
       } else {
@@ -142,19 +100,5 @@ class MoveFinder {
     }
 
     return bestMove;
-  }
-
-  // The method the isolate starts on. It's required to be static.
-  static void _isolateMain(MoveFinderIsolateArguments args) {
-    ScoredMove bestMove = _isolateRecursor(
-        args.board, args.player, args.player, args.numPlies - 1);
-
-    if (bestMove.move != null) {
-      args.sendPort.send(MoveFinderIsolateOutput(
-          MoveFinderResult.moveFound, bestMove.move));
-    } else {
-      args.sendPort
-          .send(MoveFinderIsolateOutput(MoveFinderResult.noPossibleMove));
-    }
   }
 }
