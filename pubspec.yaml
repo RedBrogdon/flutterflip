@@ -2,7 +2,7 @@ name: flutterflip
 description: A Reversi game built in Flutter.
 
 dependencies:
-  async: "2.0.7"
+  async: ^2.0.7
   flutter:
     sdk: flutter
 
@@ -15,6 +15,6 @@ flutter:
   fonts:
     - family: Roboto
       fonts:
-        - asset: assets/fonts/Roboto-thin.ttf
+        - asset: assets/fonts/Roboto-Thin.ttf
         - asset: assets/fonts/Roboto-ThinItalic.ttf
           style: italic
