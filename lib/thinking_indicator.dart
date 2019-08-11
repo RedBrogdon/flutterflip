@@ -3,22 +3,85 @@
 // found in the LICENSE file.
 
 import 'package:flutter/widgets.dart';
+import 'package:flutterflip/styling.dart';
 
 /// This is a self-animated progress spinner, only instead of spinning it
 /// moves five little circles in a horizontal arrangement.
-class ThinkingIndicator extends StatefulWidget {
+class ThinkingIndicator extends ImplicitlyAnimatedWidget {
   final Color color;
-  final double size;
+  final double height;
+  final bool visible;
 
-  ThinkingIndicator(
-      {this.color: const Color(0xffffffff), this.size: 10.0, Key key})
-      : super(key: key);
+  ThinkingIndicator({
+    this.color = const Color(0xffffffff),
+    this.height = 10.0,
+    this.visible = true,
+    Key key,
+  }) : super(
+          duration: Styling.thinkingFadeDuration,
+          key: key,
+        );
 
   @override
-  State createState() => _ThinkingIndicatorState();
+  ImplicitlyAnimatedWidgetState createState() => _ThinkingIndicatorState();
 }
 
-class _ThinkingIndicatorState extends State<ThinkingIndicator>
+class _ThinkingIndicatorState
+    extends AnimatedWidgetBaseState<ThinkingIndicator> {
+  Tween<double> _opacityTween;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  Widget build(BuildContext context) {
+    return Center(
+      child: SizedBox(
+        height: widget.height,
+        child: Opacity(
+          opacity: _opacityTween.evaluate(animation),
+          child: _opacityTween.evaluate(animation) != 0
+              ? _AnimatedCircles(
+                  color: widget.color,
+                  height: widget.height,
+                )
+              : null,
+        ),
+      ),
+    );
+  }
+
+  @override
+  void forEachTween(visitor) {
+    _opacityTween = visitor(
+      _opacityTween,
+      widget.visible ? 1.0 : 0.0,
+      (dynamic value) => Tween<double>(begin: value as double),
+    ) as Tween<double>;
+  }
+}
+
+class _AnimatedCircles extends StatefulWidget {
+  final Color color;
+  final double height;
+
+  const _AnimatedCircles({
+    this.color,
+    this.height,
+    Key key,
+  }) : super(key: key);
+
+  @override
+  _AnimatedCirclesState createState() => _AnimatedCirclesState();
+}
+
+class _AnimatedCirclesState extends State<_AnimatedCircles>
     with SingleTickerProviderStateMixin {
   Animation<double> _thinkingAnimation;
   AnimationController _thinkingController;
@@ -34,11 +97,8 @@ class _ThinkingIndicatorState extends State<ThinkingIndicator>
         if (status == AnimationStatus.completed) _thinkingController.reverse();
         if (status == AnimationStatus.dismissed) _thinkingController.forward();
       });
-    _thinkingAnimation = Tween(begin: 0.0, end: widget.size).animate(
-        CurvedAnimation(parent: _thinkingController, curve: Curves.easeOut))
-      ..addListener(() {
-        setState(() {});
-      });
+    _thinkingAnimation = Tween(begin: 0.0, end: widget.height).animate(
+        CurvedAnimation(parent: _thinkingController, curve: Curves.easeOut));
     _thinkingController.forward();
   }
 
@@ -48,29 +108,40 @@ class _ThinkingIndicatorState extends State<ThinkingIndicator>
     super.dispose();
   }
 
-  Widget build(BuildContext context) {
-    return Center(
-      child: SizedBox(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: List<Widget>.generate(
-            5,
-            (_) => Padding(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: _thinkingAnimation.value),
-                  child: Container(
-                    width: widget.size,
-                    height: widget.size,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: widget.color, width: 2.0),
-                      borderRadius:
-                          BorderRadius.all(const Radius.circular(5.0)),
-                    ),
-                  ),
-                ),
-          ),
+  Widget _buildCircle() {
+    return Container(
+      width: widget.height,
+      height: widget.height,
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: widget.color,
+          width: 2.0,
         ),
+        borderRadius: BorderRadius.all(const Radius.circular(5.0)),
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _thinkingAnimation,
+      builder: (context, child) {
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildCircle(),
+            SizedBox(width: _thinkingAnimation.value),
+            _buildCircle(),
+            SizedBox(width: _thinkingAnimation.value),
+            _buildCircle(),
+            SizedBox(width: _thinkingAnimation.value),
+            _buildCircle(),
+            SizedBox(width: _thinkingAnimation.value),
+            _buildCircle(),
+          ],
+        );
+      },
     );
   }
 }

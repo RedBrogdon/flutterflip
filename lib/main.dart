@@ -10,7 +10,6 @@ import 'package:flutter/widgets.dart';
 
 import 'game_board.dart';
 import 'game_model.dart';
-import 'maybe_builder.dart';
 import 'move_finder.dart';
 import 'styling.dart';
 import 'thinking_indicator.dart';
@@ -26,15 +25,15 @@ void main() {
   runApp(FlutterFlipApp());
 }
 
-/// The App class. Unlike most Flutter apps, this one does not use Material
-/// Widgets, so there's no [MaterialApp] or [Theme] objects.
+/// The App class. Unlike many Flutter apps, this one does not use Material
+/// widgets, so there's no [MaterialApp] or [Theme] objects.
 class FlutterFlipApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return WidgetsApp(
       color: Color(0xffffffff), // Mandatory background color.
-      onGenerateRoute: (RouteSettings settings) {
-        return PageRouteBuilder(
+      onGenerateRoute: (settings) {
+        return PageRouteBuilder<dynamic>(
           settings: settings,
           pageBuilder: (context, animation, secondaryAnimation) => GameScreen(),
         );
@@ -87,10 +86,11 @@ class _GameScreenState extends State<GameScreen> {
     _modelStream = StreamGroup.merge([
       _userMovesController.stream,
       _restartController.stream,
-    ]).asyncExpand((GameModel model) async* {
+    ]).asyncExpand((model) async* {
       yield model;
 
       GameModel newModel = model;
+
       while (newModel.player == PieceType.white) {
         MoveFinder finder = MoveFinder(newModel.board);
         Position move = await finder.findNextMove(newModel.player, 5);
@@ -114,7 +114,7 @@ class _GameScreenState extends State<GameScreen> {
   /// details to _buildWidgets.
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
+    return StreamBuilder<GameModel>(
       stream: _modelStream,
       builder: (context, snapshot) {
         return _buildWidgets(
@@ -135,6 +135,70 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  Widget _buildScoreBox(PieceType player, GameModel model) {
+    String label = player == PieceType.black ? 'black' : 'white';
+    String scoreText = player == PieceType.black
+        ? '${model.blackScore}'
+        : '${model.whiteScore}';
+
+    return DecoratedBox(
+      decoration: (model.player == player)
+          ? Styling.activePlayerIndicator
+          : Styling.inactivePlayerIndicator,
+      child: Column(
+        children: <Widget>[
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: Styling.scoreLabelText,
+          ),
+          Text(
+            scoreText,
+            textAlign: TextAlign.center,
+            style: Styling.scoreText,
+          )
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildGameBoardDisplay(BuildContext context, GameModel model) {
+    final rows = <Widget>[];
+
+    for (int y = 0; y < GameBoard.height; y++) {
+      final spots = <Widget>[];
+
+      for (int x = 0; x < GameBoard.width; x++) {
+        spots.add(AnimatedContainer(
+          duration: Duration(
+            milliseconds: 500,
+          ),
+          margin: EdgeInsets.all(1.0),
+          decoration: BoxDecoration(
+            gradient:
+                Styling.pieceGradients[model.board.getPieceAtLocation(x, y)],
+          ),
+          child: SizedBox(
+            width: 40.0,
+            height: 40.0,
+            child: GestureDetector(
+              onTap: () {
+                _attemptUserMove(model, x, y);
+              },
+            ),
+          ),
+        ));
+      }
+
+      rows.add(Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: spots,
+      ));
+    }
+
+    return rows;
+  }
+
   // Builds out the Widget tree using the most recent GameModel from the stream.
   Widget _buildWidgets(BuildContext context, GameModel model) {
     return Container(
@@ -143,116 +207,39 @@ class _GameScreenState extends State<GameScreen> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: <Color>[
+          colors: [
             Styling.backgroundStartColor,
             Styling.backgroundFinishColor,
           ],
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              DecoratedBox(
-                decoration: (model.player == PieceType.black)
-                    ? Styling.activePlayerIndicator
-                    : Styling.inactivePlayerIndicator,
-                child: Column(
-                  children: <Widget>[
-                    Text(
-                      "black",
-                      textAlign: TextAlign.center,
-                      style: Styling.scoreLabelText,
-                    ),
-                    Text(
-                      "${model.blackScore}",
-                      textAlign: TextAlign.center,
-                      style: Styling.scoreText,
-                    )
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 200.0),
-                child: DecoratedBox(
-                  decoration: (model.player == PieceType.white)
-                      ? Styling.activePlayerIndicator
-                      : Styling.inactivePlayerIndicator,
-                  child: Column(
-                    children: <Widget>[
-                      Text("white",
-                          textAlign: TextAlign.center,
-                          style: Styling.scoreLabelText),
-                      Text("${model.whiteScore}",
-                          textAlign: TextAlign.center,
-                          style: Styling.scoreText),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Container(
-            margin: EdgeInsets.only(top: 20.0),
-            height: 10.0,
-            child: AnimatedOpacity(
-              opacity: (model.player == PieceType.white) ? 1.0 : 0.0,
-              duration: Styling.thinkingFadeDuration,
-              child: ThinkingIndicator(
-                color: Styling.thinkingColor,
-                size: Styling.thinkingSize,
-              ),
+      child: SafeArea(
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Spacer(flex: 1),
+                _buildScoreBox(PieceType.black, model),
+                Spacer(flex: 4),
+                _buildScoreBox(PieceType.white, model),
+                Spacer(flex: 1),
+              ],
             ),
-          ),
-          Container(
-            margin: EdgeInsets.only(
-              top: 20.0,
+            SizedBox(height: 20),
+            ThinkingIndicator(
+              color: Styling.thinkingColor,
+              height: Styling.thinkingSize,
+              visible: model.player == PieceType.white,
             ),
-            child: Column(
-              children: List<Widget>.generate(
-                GameBoard.height,
-                (y) => Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List<Widget>.generate(
-                        GameBoard.width,
-                        (x) => AnimatedContainer(
-                              duration: Duration(
-                                milliseconds: 500,
-                              ),
-                              margin: EdgeInsets.all(1.0),
-                              decoration: BoxDecoration(
-                                gradient: Styling.pieceGradients[
-                                    model.board.getPieceAtLocation(x, y)],
-                              ),
-                              child: SizedBox(
-                                width: 40.0,
-                                height: 40.0,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    _attemptUserMove(model, x, y);
-                                  },
-                                ),
-                              ),
-                            ),
-                      ),
-                    ),
-              ),
-            ),
-          ),
-          MaybeBuilder(
-            condition: model.gameIsOver,
-            builder: (context) {
-              return Column(
-                children: <Widget>[
+            SizedBox(height: 20),
+            ..._buildGameBoardDisplay(context, model),
+            SizedBox(height: 30),
+            if (model.gameIsOver)
+              Column(
+                children: [
                   Padding(
-                    padding: const EdgeInsets.only(
-                      top: 30.0,
-                      left: 10.0,
-                      right: 10.0,
-                      bottom: 20.0,
-                    ),
+                    padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
                     child: Text(
                       model.gameResultString,
                       style: Styling.resultText,
@@ -261,9 +248,7 @@ class _GameScreenState extends State<GameScreen> {
                   GestureDetector(
                     onTap: () {
                       _restartController.add(
-                        GameModel(
-                          board: GameBoard(),
-                        ),
+                        GameModel(board: GameBoard()),
                       );
                     },
                     child: Container(
@@ -283,12 +268,11 @@ class _GameScreenState extends State<GameScreen> {
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
-              );
-            },
-          )
-        ],
+              ),
+          ],
+        ),
       ),
     );
   }

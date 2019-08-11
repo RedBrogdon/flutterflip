@@ -2,7 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-enum PieceType { empty, black, white }
+enum PieceType {
+  empty,
+  black,
+  white,
+}
 
 /// This method flips a black piece to a white one, and vice versa. I'm still
 /// unsure about having it as a global function, but don't know where else to
@@ -15,7 +19,7 @@ class Position {
   final int x;
   final int y;
 
-  Position(int x, int y)
+  const Position(int x, int y)
       : this.x = x,
         this.y = y;
 }
@@ -24,7 +28,7 @@ class Position {
 class GameBoard {
   static final int height = 8;
   static final int width = 8;
-  final _positions = List<List<PieceType>>(height);
+  final List<List<PieceType>> rows;
 
   // Because calculating out all the available moves for a player can be
   // expensive, they're cached here.
@@ -33,49 +37,25 @@ class GameBoard {
 
   /// Default constructor, which creates a board with pieces in starting
   /// position.
-  GameBoard() {
-    for (int y = 0; y < width; y++) {
-      _positions[y] = List<PieceType>(height);
-      for (int x = 0; x < width; x++) {
-        _positions[y][x] = PieceType.empty;
-      }
-    }
-
-    _positions[3][3] = PieceType.black;
-    _positions[3][4] = PieceType.white;
-    _positions[4][3] = PieceType.white;
-    _positions[4][4] = PieceType.black;
-  }
+  GameBoard() : rows = _emptyBoard;
 
   /// Copy constructor.
-  GameBoard.fromGameBoard(GameBoard other) {
-    // Copy constructor.
-    for (int y = 0; y < height; y++) {
-      _positions[y] = List<PieceType>(width);
-      for (int x = 0; x < width; x++) {
-        _positions[y][x] = other._positions[y][x];
-      }
-    }
-  }
+  GameBoard.fromGameBoard(GameBoard other)
+      : rows = List.generate(height, (i) => List.from(other.rows[i]));
 
   /// Retrieves the type of piece at a location on the game board.
   PieceType getPieceAtLocation(int x, int y) {
     assert(x >= 0 && x < width);
     assert(y >= 0 && y < height);
-    return _positions[y][x];
+    return rows[y][x];
   }
 
   /// Gets the total number of pieces of a particular type.
   int getPieceCount(PieceType pieceType) {
-    int count = 0;
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        if (_positions[y][x] == pieceType) {
-          count++;
-        }
-      }
-    }
-    return count;
+    return rows.fold(
+      0,
+      (s, e) => s + e.where((e) => e == pieceType).length,
+    );
   }
 
   /// Calculates the list of available moves on this board for a player. These
@@ -110,7 +90,7 @@ class GameBoard {
     assert(player != PieceType.empty);
     assert(isLegalMove(x, y, player));
     GameBoard newBoard = GameBoard.fromGameBoard(this);
-    newBoard._positions[y][x] = player;
+    newBoard.rows[y][x] = player;
 
     for (int dx = -1; dx <= 1; dx++) {
       for (int dy = -1; dy <= 1; dy++) {
@@ -130,7 +110,7 @@ class GameBoard {
     assert(y >= 0 && y < height);
 
     // It's occupied, yo. No can do.
-    if (_positions[y][x] != PieceType.empty) return false;
+    if (rows[y][x] != PieceType.empty) return false;
 
     // Try each of the eight cardinal directions, looking for a row of opposing
     // pieces to flip.
@@ -147,7 +127,7 @@ class GameBoard {
   }
 
   // This method walks the board in one of eight cardinal directions (determined
-  // by the [dx] and [dy] parameters) beginning at [x],[y], and attempting to
+  // by the [dx] and [dy] parameters) beginning at [x],[y], and attempts to
   // determine if a move at [x],[y] by [player] would result in pieces getting
   // flipped. If so, the method returns true, otherwise false. If [flip] is set
   // to true, the pieces are flipped in place to their new colors before the
@@ -159,10 +139,10 @@ class GameBoard {
     int curY = y + dy;
 
     while (curX >= 0 && curX < width && curY >= 0 && curY < height) {
-      if (_positions[curY][curX] == PieceType.empty) {
+      if (rows[curY][curX] == PieceType.empty) {
         // This path led to an empty spot rather than a legal move.
         return false;
-      } else if (_positions[curY][curX] == getOpponent(player)) {
+      } else if (rows[curY][curX] == getOpponent(player)) {
         // Update flag and keep going, hoping to hit one of player's pieces.
         foundOpponent = true;
       } else if (foundOpponent) {
@@ -173,7 +153,7 @@ class GameBoard {
           while (curX != x || curY != y) {
             curX -= dx;
             curY -= dy;
-            _positions[curY][curX] = player;
+            rows[curY][curX] = player;
           }
         }
         return true;
@@ -189,3 +169,86 @@ class GameBoard {
     return false;
   }
 }
+
+const _emptyBoard = [
+  [
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+  ],
+  [
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+  ],
+  [
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+  ],
+  [
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.black,
+    PieceType.white,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+  ],
+  [
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.white,
+    PieceType.black,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+  ],
+  [
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+  ],
+  [
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+  ],
+  [
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+    PieceType.empty,
+  ],
+];

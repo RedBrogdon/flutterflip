@@ -10,13 +10,16 @@ class GameModel {
   final GameBoard board;
   final PieceType player;
 
-  GameModel({this.board, this.player: PieceType.black}) : assert(board != null);
+  GameModel({
+    this.board,
+    this.player = PieceType.black,
+  }) : assert(board != null);
 
   int get blackScore => board.getPieceCount(PieceType.black);
 
   int get whiteScore => board.getPieceCount(PieceType.white);
 
-  bool get gameIsOver => (board.getMovesForPlayer(player).length == 0);
+  bool get gameIsOver => (board.getMovesForPlayer(player).isEmpty);
 
   String get gameResultString {
     if (blackScore > whiteScore) {
@@ -31,9 +34,6 @@ class GameModel {
   /// Attempts to create a new instance of GameModel using the coordinates
   /// provided as the current player's move. If successful, a new GameModel is
   /// returned. If unsuccessful, null is returned.
-  ///
-  /// This is another method that probably shouldn't live where it does, but I
-  /// don't have a better idea for where to put it.
   GameModel updateForMove(int x, int y) {
     if (!board.isLegalMove(x, y, player)) {
       return null;
@@ -42,9 +42,9 @@ class GameModel {
     GameBoard newBoard = board.updateForMove(x, y, player);
     PieceType nextPlayer;
 
-    if (newBoard.getMovesForPlayer(getOpponent(player)).length > 0) {
+    if (newBoard.getMovesForPlayer(getOpponent(player)).isNotEmpty) {
       nextPlayer = getOpponent(player);
-    } else if (newBoard.getMovesForPlayer(player).length > 0) {
+    } else if (newBoard.getMovesForPlayer(player).isNotEmpty) {
       nextPlayer = player;
     } else {
       nextPlayer = PieceType.empty;

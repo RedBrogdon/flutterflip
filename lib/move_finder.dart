@@ -39,7 +39,7 @@ ScoredMove _performSearchPly(GameBoard board, PieceType scoringPlayer,
     PieceType player, int pliesRemaining) {
   List<Position> availableMoves = board.getMovesForPlayer(player);
 
-  if (availableMoves.length == 0) {
+  if (availableMoves.isEmpty) {
     return ScoredMove(0, null);
   }
 
@@ -52,13 +52,13 @@ ScoredMove _performSearchPly(GameBoard board, PieceType scoringPlayer,
     GameBoard newBoard =
         board.updateForMove(availableMoves[i].x, availableMoves[i].y, player);
     if (pliesRemaining > 0 &&
-        newBoard.getMovesForPlayer(getOpponent(player)).length > 0) {
+        newBoard.getMovesForPlayer(getOpponent(player)).isNotEmpty) {
       // Opponent has next turn.
       score = _performSearchPly(
               newBoard, scoringPlayer, getOpponent(player), pliesRemaining - 1)
           .score;
     } else if (pliesRemaining > 0 &&
-        newBoard.getMovesForPlayer(player).length > 0) {
+        newBoard.getMovesForPlayer(player).isNotEmpty) {
       // Opponent has no moves; player gets another turn.
       score =
           _performSearchPly(newBoard, scoringPlayer, player, pliesRemaining - 1)

@@ -15,11 +15,11 @@ import 'game_board.dart';
 abstract class Styling {
   // **** GRADIENTS AND COLORS ****
 
-  static final Map<PieceType, LinearGradient> pieceGradients = {
+  static const Map<PieceType, LinearGradient> pieceGradients = {
     PieceType.black: LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: <Color>[
+      colors: [
         Color(0xff101010),
         Color(0xff303030),
       ],
@@ -27,7 +27,7 @@ abstract class Styling {
     PieceType.white: LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: <Color>[
+      colors: [
         Color(0xffffffff),
         Color(0xffe0e0e0),
       ],
@@ -35,74 +35,73 @@ abstract class Styling {
     PieceType.empty: LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: <Color>[
+      colors: [
         Color(0x60ffffff),
         Color(0x40ffffff),
       ],
     ),
   };
 
-  static const Color backgroundStartColor = const Color(0xb000bfff);
-  static const Color backgroundFinishColor = const Color(0xb0ff00ee);
-  static const Color thinkingColor = const Color(0xa0ffffff);
+  static const backgroundStartColor = Color(0xb000bfff);
+  static const backgroundFinishColor = Color(0xb0ff00ee);
+  static const thinkingColor = Color(0xa0ffffff);
 
   // **** ANIMATIONS ****
 
-  static const Duration thinkingFadeDuration =
-      const Duration(milliseconds: 500);
+  static const Duration thinkingFadeDuration = Duration(milliseconds: 500);
 
-  static const Duration pieceFlipDuration = const Duration(milliseconds: 300);
+  static const pieceFlipDuration = Duration(milliseconds: 300);
 
   // **** SIZES ****
 
-  static const double thinkingSize = 10.0;
+  static const thinkingSize = 10.0;
 
   // **** TEXT ****
 
-  static final TextStyle scoreText = TextStyle(
+  static const scoreText = TextStyle(
     fontSize: 50.0,
     fontFamily: 'Roboto',
-    color: const Color(0xe0ffffff),
+    color: Color(0xe0ffffff),
     fontStyle: FontStyle.italic,
   );
 
-  static final TextStyle scoreLabelText = TextStyle(
+  static const scoreLabelText = TextStyle(
     fontSize: 20.0,
     fontFamily: 'Roboto',
-    color: const Color(0xa0ffffff),
+    color: Color(0xa0ffffff),
     fontStyle: FontStyle.normal,
   );
 
-  static final TextStyle resultText = TextStyle(
+  static const resultText = TextStyle(
     fontSize: 40.0,
     fontFamily: 'Roboto',
-    color: const Color(0xe0ffffff),
+    color: Color(0xe0ffffff),
     fontStyle: FontStyle.italic,
   );
 
-  static final TextStyle buttonText = TextStyle(
+  static const buttonText = TextStyle(
     fontSize: 20.0,
     fontFamily: 'Roboto',
-    color: const Color(0xe0ffffff),
+    color: Color(0xe0ffffff),
     fontStyle: FontStyle.italic,
   );
 
   // **** BOXES ****
 
-  static final BoxDecoration activePlayerIndicator = BoxDecoration(
-    border: const Border(
-      bottom: const BorderSide(
+  static const activePlayerIndicator = BoxDecoration(
+    border: Border(
+      bottom: BorderSide(
         width: 2.0,
-        color: const Color(0xffffffff),
+        color: Color(0xffffffff),
       ),
     ),
   );
 
-  static final BoxDecoration inactivePlayerIndicator = BoxDecoration(
-    border: const Border(
-      bottom: const BorderSide(
+  static const inactivePlayerIndicator = BoxDecoration(
+    border: Border(
+      bottom: BorderSide(
         width: 2.0,
-        color: const Color(0x00000000),
+        color: Color(0x00000000),
       ),
     ),
   );
