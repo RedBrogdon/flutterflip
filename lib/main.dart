@@ -64,19 +64,19 @@ class _GameScreenState extends State<GameScreen> {
 
   _GameScreenState() {
     // Below is the combination of streams that controls the flow of the game.
-    // There are two streams of models produced by player interaction (either
-    // by restarting the game, which produces a brand new game model and sends
-    // it downstream, or tapping on one of the board locations to play a piece,
+    // There are two streams of models produced by player interaction (either by
+    // restarting the game, which produces a brand new game model and sends it
+    // downstream, or tapping on one of the board locations to play a piece, and
     // which creates a new board model with the result of the move and sends it
     // downstream. The StreamGroup combines these into a single stream, then
     // does a little trick with asyncExpand.
     //
     // The function used in asyncExpand checks to see if it's the CPU's turn
-    // (white), and if so creates a [MoveFinder] to look for the best move.
-    // it awaits the result, and then creates a new [GameModel] with the result
-    // of that move and sends it downstream by yielding it. If it's still the
-    // CPU's turn after making that move (which can happen in reversi), this is
-    // repeated.
+    // (white), and if so creates a [MoveFinder] to look for the best move. It
+    // awaits the calculation, and then creates a new [GameModel] with the
+    // result of that move and sends it downstream by yielding it. If it's still
+    // the CPU's turn after making that move (which can happen in reversi), this
+    // is repeated.
     //
     // The final stream of models that exits the asyncExpand call is a
     // combination of "new game" models, models with the results of player
