@@ -1,9 +1,11 @@
-include: package:pedantic/analysis_options.1.7.0.yaml
+include: package:pedantic/analysis_options.1.9.0.yaml
 
 analyzer:
   strong-mode:
     implicit-casts: false
     implicit-dynamic: false
+  enable-experiment:
+    - non-nullable
 
 linter:
   rules:

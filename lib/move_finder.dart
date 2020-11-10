@@ -10,7 +10,8 @@ import 'game_board.dart';
 import 'game_board_scorer.dart';
 
 class MoveSearchArgs {
-  MoveSearchArgs({this.board, this.player, this.numPlies});
+  MoveSearchArgs(
+      {required this.board, required this.player, required this.numPlies});
 
   final GameBoard board;
   final PieceType player;
@@ -27,42 +28,54 @@ class ScoredMove {
 
 // The [compute] function requires a top-level method as its first argument.
 // This is that method for [MoveFinder].
-Position _findNextMove(MoveSearchArgs args) {
-  ScoredMove bestMove = _performSearchPly(
+Position? _findNextMove(MoveSearchArgs args) {
+  final bestMove = _performSearchPly(
       args.board, args.player, args.player, args.numPlies - 1);
-  return bestMove.move;
+  return bestMove?.move;
 }
 
 // This is a recursive implementation of minimax, an algorithm so old it has
 // its own Wikipedia page: https://wikipedia.org/wiki/Minimax.
-ScoredMove _performSearchPly(GameBoard board, PieceType scoringPlayer,
-    PieceType player, int pliesRemaining) {
-  List<Position> availableMoves = board.getMovesForPlayer(player);
+ScoredMove? _performSearchPly(
+  GameBoard board,
+  PieceType scoringPlayer,
+  PieceType player,
+  int pliesRemaining,
+) {
+  final availableMoves = board.getMovesForPlayer(player);
 
   if (availableMoves.isEmpty) {
-    return ScoredMove(0, null);
+    return null;
   }
 
-  int score = (scoringPlayer == player)
+  var score = (scoringPlayer == player)
       ? GameBoardScorer.minScore
       : GameBoardScorer.maxScore;
-  ScoredMove bestMove;
+  ScoredMove? bestMove;
 
-  for (int i = 0; i < availableMoves.length; i++) {
-    GameBoard newBoard =
+  for (var i = 0; i < availableMoves.length; i++) {
+    final newBoard =
         board.updateForMove(availableMoves[i].x, availableMoves[i].y, player);
     if (pliesRemaining > 0 &&
         newBoard.getMovesForPlayer(getOpponent(player)).isNotEmpty) {
       // Opponent has next turn.
       score = _performSearchPly(
-              newBoard, scoringPlayer, getOpponent(player), pliesRemaining - 1)
-          .score;
+            newBoard,
+            scoringPlayer,
+            getOpponent(player),
+            pliesRemaining - 1,
+          )?.score ??
+          0;
     } else if (pliesRemaining > 0 &&
         newBoard.getMovesForPlayer(player).isNotEmpty) {
       // Opponent has no moves; player gets another turn.
-      score =
-          _performSearchPly(newBoard, scoringPlayer, player, pliesRemaining - 1)
-              .score;
+      score = _performSearchPly(
+            newBoard,
+            scoringPlayer,
+            player,
+            pliesRemaining - 1,
+          )?.score ??
+          0;
     } else {
       // Game is over or the search has reached maximum depth.
       score = GameBoardScorer(newBoard).getScore(scoringPlayer);
@@ -85,16 +98,16 @@ ScoredMove _performSearchPly(GameBoard board, PieceType scoringPlayer,
 class MoveFinder {
   final GameBoard initialBoard;
 
-  MoveFinder(this.initialBoard) : assert(initialBoard != null);
+  MoveFinder(this.initialBoard);
 
   /// Searches the tree of possible moves on [initialBoard] to a depth of
   /// [numPlies], looking for the best possible move for [player]. Because the
   /// actual work is done in an isolate, a [Future] is used as the return value.
-  Future<Position> findNextMove(PieceType player, int numPlies) {
+  Future<Position?> findNextMove(PieceType player, int numPlies) {
     return compute(
       _findNextMove,
       MoveSearchArgs(
-        board: this.initialBoard,
+        board: initialBoard,
         player: player,
         numPlies: numPlies,
       ),

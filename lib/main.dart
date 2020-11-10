@@ -17,11 +17,14 @@ import 'thinking_indicator.dart';
 /// Main function for the app. Turns off the system overlays and locks portrait
 /// orientation for a more game-like UI, and then runs the [Widget] tree.
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
   SystemChrome.setEnabledSystemUIOverlays([]);
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+
   runApp(FlutterFlipApp());
 }
 
@@ -60,7 +63,7 @@ class _GameScreenState extends State<GameScreen> {
       StreamController<GameModel>();
   final StreamController<GameModel> _restartController =
       StreamController<GameModel>();
-  Stream<GameModel> _modelStream;
+  Stream<GameModel>? _modelStream;
 
   _GameScreenState() {
     // Below is the combination of streams that controls the flow of the game.
@@ -89,11 +92,11 @@ class _GameScreenState extends State<GameScreen> {
     ]).asyncExpand((model) async* {
       yield model;
 
-      GameModel newModel = model;
+      var newModel = model;
 
       while (newModel.player == PieceType.white) {
-        MoveFinder finder = MoveFinder(newModel.board);
-        Position move = await finder.findNextMove(newModel.player, 5);
+        final finder = MoveFinder(newModel.board);
+        final move = await finder.findNextMove(newModel.player, 5);
         if (move != null) {
           newModel = newModel.updateForMove(move.x, move.y);
           yield newModel;
@@ -119,7 +122,7 @@ class _GameScreenState extends State<GameScreen> {
       builder: (context, snapshot) {
         return _buildWidgets(
           context,
-          snapshot.hasData ? snapshot.data : GameModel(board: GameBoard()),
+          snapshot.hasData ? snapshot.data! : GameModel(board: GameBoard()),
         );
       },
     );
@@ -136,8 +139,8 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget _buildScoreBox(PieceType player, GameModel model) {
-    String label = player == PieceType.black ? 'black' : 'white';
-    String scoreText = player == PieceType.black
+    var label = player == PieceType.black ? 'black' : 'white';
+    var scoreText = player == PieceType.black
         ? '${model.blackScore}'
         : '${model.whiteScore}';
 
@@ -165,10 +168,10 @@ class _GameScreenState extends State<GameScreen> {
   List<Widget> _buildGameBoardDisplay(BuildContext context, GameModel model) {
     final rows = <Widget>[];
 
-    for (int y = 0; y < GameBoard.height; y++) {
+    for (var y = 0; y < GameBoard.height; y++) {
       final spots = <Widget>[];
 
-      for (int x = 0; x < GameBoard.width; x++) {
+      for (var x = 0; x < GameBoard.width; x++) {
         spots.add(AnimatedContainer(
           duration: Duration(
             milliseconds: 500,
@@ -263,7 +266,7 @@ class _GameScreenState extends State<GameScreen> {
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 4.0),
                         child: Text(
-                          "new game",
+                          'new game',
                           style: Styling.buttonText,
                         ),
                       ),

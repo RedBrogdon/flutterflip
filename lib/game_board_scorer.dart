@@ -22,23 +22,23 @@ class GameBoardScorer {
   static const maxScore = 1000 * 1000 * 1000;
   static const minScore = -1 * maxScore;
 
-  GameBoard _board;
+  final GameBoard board;
 
-  GameBoardScorer(GameBoard board) : _board = board;
+  GameBoardScorer(this.board);
 
   /// Returns the score of the board, as determined by what pieces are in place,
   /// and how valuable their locations are. This is a very simple scoring
   /// heuristic, but it's surprisingly effective.
   int getScore(PieceType player) {
     assert(player != PieceType.empty);
-    PieceType opponent = getOpponent(player);
-    int score = 0;
+    var opponent = getOpponent(player);
+    var score = 0;
 
-    if (_board.getMovesForPlayer(PieceType.black).isEmpty &&
-        _board.getMovesForPlayer(PieceType.white).isEmpty) {
+    if (board.getMovesForPlayer(PieceType.black).isEmpty &&
+        board.getMovesForPlayer(PieceType.white).isEmpty) {
       // Game is over.
-      int playerCount = _board.getPieceCount(player);
-      int opponentCount = _board.getPieceCount(getOpponent(player));
+      var playerCount = board.getPieceCount(player);
+      var opponentCount = board.getPieceCount(getOpponent(player));
 
       if (playerCount > opponentCount) {
         return maxScore;
@@ -49,11 +49,11 @@ class GameBoardScorer {
       }
     }
 
-    for (int y = 0; y < GameBoard.height; y++) {
-      for (int x = 0; x < GameBoard.width; x++) {
-        if (_board.getPieceAtLocation(x, y) == player) {
+    for (var y = 0; y < GameBoard.height; y++) {
+      for (var x = 0; x < GameBoard.width; x++) {
+        if (board.getPieceAtLocation(x, y) == player) {
           score += _positionValues[y][x];
-        } else if (_board.getPieceAtLocation(x, y) == opponent) {
+        } else if (board.getPieceAtLocation(x, y) == opponent) {
           score -= _positionValues[y][x];
         }
       }

@@ -7,13 +7,13 @@ import 'game_board.dart';
 /// A model representing the state of a game of reversi. It's a board and the
 /// player who's next to go, essentially.
 class GameModel {
-  final GameBoard board;
+  late final GameBoard board;
   final PieceType player;
 
   GameModel({
-    this.board,
+    required this.board,
     this.player = PieceType.black,
-  }) : assert(board != null);
+  });
 
   int get blackScore => board.getPieceCount(PieceType.black);
 
@@ -23,11 +23,11 @@ class GameModel {
 
   String get gameResultString {
     if (blackScore > whiteScore) {
-      return "Black wins.";
+      return 'Black wins.';
     } else if (whiteScore > blackScore) {
-      return "White wins.";
+      return 'White wins.';
     } else {
-      return "Tie.";
+      return 'Tie.';
     }
   }
 
@@ -36,10 +36,10 @@ class GameModel {
   /// returned. If unsuccessful, null is returned.
   GameModel updateForMove(int x, int y) {
     if (!board.isLegalMove(x, y, player)) {
-      return null;
+      return null!;
     }
 
-    GameBoard newBoard = board.updateForMove(x, y, player);
+    final newBoard = board.updateForMove(x, y, player);
     PieceType nextPlayer;
 
     if (newBoard.getMovesForPlayer(getOpponent(player)).isNotEmpty) {

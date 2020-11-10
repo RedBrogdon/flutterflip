@@ -19,9 +19,7 @@ class Position {
   final int x;
   final int y;
 
-  const Position(int x, int y)
-      : this.x = x,
-        this.y = y;
+  const Position(this.x, this.y);
 }
 
 /// An immutable representation of a reversi game's board.
@@ -32,8 +30,7 @@ class GameBoard {
 
   // Because calculating out all the available moves for a player can be
   // expensive, they're cached here.
-  Map<PieceType, List<Position>> _availableMoveCache =
-      Map<PieceType, List<Position>>();
+  final _availableMoveCache = <PieceType, List<Position>>{};
 
   /// Default constructor, which creates a board with pieces in starting
   /// position.
@@ -67,12 +64,12 @@ class GameBoard {
     }
 
     if (_availableMoveCache.containsKey(player)) {
-      return _availableMoveCache[player];
+      return _availableMoveCache[player]!;
     }
 
-    List<Position> legalMoves = <Position>[];
-    for (int x = 0; x < width; x++) {
-      for (int y = 0; y < width; y++) {
+    final legalMoves = <Position>[];
+    for (var x = 0; x < width; x++) {
+      for (var y = 0; y < width; y++) {
         if (isLegalMove(x, y, player)) {
           legalMoves.add(Position(x, y));
         }
@@ -88,12 +85,16 @@ class GameBoard {
   /// the move was legal, and will blindly trust its input.
   GameBoard updateForMove(int x, int y, PieceType player) {
     assert(player != PieceType.empty);
-    assert(isLegalMove(x, y, player));
-    GameBoard newBoard = GameBoard.fromGameBoard(this);
+    final newBoard = GameBoard.fromGameBoard(this);
+
+    if (!isLegalMove(x, y, player)) {
+      return newBoard;
+    }
+
     newBoard.rows[y][x] = player;
 
-    for (int dx = -1; dx <= 1; dx++) {
-      for (int dy = -1; dy <= 1; dy++) {
+    for (var dx = -1; dx <= 1; dx++) {
+      for (var dy = -1; dy <= 1; dy++) {
         if (dx == 0 && dy == 0) continue;
         newBoard._traversePath(x, y, dx, dy, player, true);
       }
@@ -114,8 +115,8 @@ class GameBoard {
 
     // Try each of the eight cardinal directions, looking for a row of opposing
     // pieces to flip.
-    for (int dx = -1; dx <= 1; dx++) {
-      for (int dy = -1; dy <= 1; dy++) {
+    for (var dx = -1; dx <= 1; dx++) {
+      for (var dy = -1; dy <= 1; dy++) {
         if (dx == 0 && dy == 0) continue;
         if (_traversePath(x, y, dx, dy, player, false)) return true;
       }
@@ -134,9 +135,9 @@ class GameBoard {
   // method returns.
   bool _traversePath(
       int x, int y, int dx, int dy, PieceType player, bool flip) {
-    bool foundOpponent = false;
-    int curX = x + dx;
-    int curY = y + dy;
+    var foundOpponent = false;
+    var curX = x + dx;
+    var curY = y + dy;
 
     while (curX >= 0 && curX < width && curY >= 0 && curY < height) {
       if (rows[curY][curX] == PieceType.empty) {

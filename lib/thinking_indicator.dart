@@ -16,7 +16,7 @@ class ThinkingIndicator extends ImplicitlyAnimatedWidget {
     this.color = const Color(0xffffffff),
     this.height = 10.0,
     this.visible = true,
-    Key key,
+    Key? key,
   }) : super(
           duration: Styling.thinkingFadeDuration,
           key: key,
@@ -28,25 +28,21 @@ class ThinkingIndicator extends ImplicitlyAnimatedWidget {
 
 class _ThinkingIndicatorState
     extends AnimatedWidgetBaseState<ThinkingIndicator> {
-  Tween<double> _opacityTween;
-
-  @override
-  void initState() {
-    super.initState();
-  }
+  Tween<double>? _opacityTween;
 
   @override
   void dispose() {
     super.dispose();
   }
 
+  @override
   Widget build(BuildContext context) {
     return Center(
       child: SizedBox(
         height: widget.height,
         child: Opacity(
-          opacity: _opacityTween.evaluate(animation),
-          child: _opacityTween.evaluate(animation) != 0
+          opacity: _opacityTween!.evaluate(animation!),
+          child: _opacityTween!.evaluate(animation!) != 0
               ? _AnimatedCircles(
                   color: widget.color,
                   height: widget.height,
@@ -63,7 +59,7 @@ class _ThinkingIndicatorState
       _opacityTween,
       widget.visible ? 1.0 : 0.0,
       (dynamic value) => Tween<double>(begin: value as double),
-    ) as Tween<double>;
+    ) as Tween<double>?;
   }
 }
 
@@ -72,9 +68,9 @@ class _AnimatedCircles extends StatefulWidget {
   final double height;
 
   const _AnimatedCircles({
-    this.color,
-    this.height,
-    Key key,
+    required this.color,
+    required this.height,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -83,8 +79,8 @@ class _AnimatedCircles extends StatefulWidget {
 
 class _AnimatedCirclesState extends State<_AnimatedCircles>
     with SingleTickerProviderStateMixin {
-  Animation<double> _thinkingAnimation;
-  AnimationController _thinkingController;
+  late Animation<double> _thinkingAnimation;
+  late AnimationController _thinkingController;
 
   @override
   void initState() {
