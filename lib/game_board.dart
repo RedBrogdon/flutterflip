@@ -24,8 +24,8 @@ class Position {
 
 /// An immutable representation of a reversi game's board.
 class GameBoard {
-  static final int height = 8;
-  static final int width = 8;
+  static const height = 8;
+  static const width = 8;
   final List<List<PieceType>> rows;
 
   // Because calculating out all the available moves for a player can be

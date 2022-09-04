@@ -12,14 +12,13 @@ class ThinkingIndicator extends ImplicitlyAnimatedWidget {
   final double height;
   final bool visible;
 
-  ThinkingIndicator({
+  const ThinkingIndicator({
     this.color = const Color(0xffffffff),
     this.height = 10.0,
     this.visible = true,
-    Key? key,
+    super.key,
   }) : super(
           duration: Styling.thinkingFadeDuration,
-          key: key,
         );
 
   @override
@@ -41,9 +40,9 @@ class _ThinkingIndicatorState
       child: SizedBox(
         height: widget.height,
         child: Opacity(
-          opacity: _opacityTween!.evaluate(animation!),
-          child: _opacityTween!.evaluate(animation!) != 0
-              ? _AnimatedCircles(
+          opacity: _opacityTween!.evaluate(animation),
+          child: _opacityTween!.evaluate(animation) != 0
+              ? AnimatedCircles(
                   color: widget.color,
                   height: widget.height,
                 )
@@ -63,21 +62,21 @@ class _ThinkingIndicatorState
   }
 }
 
-class _AnimatedCircles extends StatefulWidget {
+class AnimatedCircles extends StatefulWidget {
   final Color color;
   final double height;
 
-  const _AnimatedCircles({
+  const AnimatedCircles({
     required this.color,
     required this.height,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
-  _AnimatedCirclesState createState() => _AnimatedCirclesState();
+  AnimatedCirclesState createState() => AnimatedCirclesState();
 }
 
-class _AnimatedCirclesState extends State<_AnimatedCircles>
+class AnimatedCirclesState extends State<AnimatedCircles>
     with SingleTickerProviderStateMixin {
   late Animation<double> _thinkingAnimation;
   late AnimationController _thinkingController;
@@ -113,7 +112,7 @@ class _AnimatedCirclesState extends State<_AnimatedCircles>
           color: widget.color,
           width: 2.0,
         ),
-        borderRadius: BorderRadius.all(const Radius.circular(5.0)),
+        borderRadius: const BorderRadius.all(Radius.circular(5.0)),
       ),
     );
   }

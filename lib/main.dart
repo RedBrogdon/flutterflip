@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:async/async.dart';
-import 'package:flutter/services.dart' show SystemChrome, DeviceOrientation;
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import 'game_board.dart';
@@ -19,26 +19,29 @@ import 'thinking_indicator.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  SystemChrome.setEnabledSystemUIOverlays([]);
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  runApp(FlutterFlipApp());
+  runApp(const FlutterFlipApp());
 }
 
 /// The App class. Unlike many Flutter apps, this one does not use Material
 /// widgets, so there's no [MaterialApp] or [Theme] objects.
 class FlutterFlipApp extends StatelessWidget {
+  const FlutterFlipApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return WidgetsApp(
-      color: Color(0xffffffff), // Mandatory background color.
+      color: const Color(0xffffffff), // Mandatory background color.
       onGenerateRoute: (settings) {
         return PageRouteBuilder<dynamic>(
           settings: settings,
-          pageBuilder: (context, animation, secondaryAnimation) => GameScreen(),
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const GameScreen(),
         );
       },
     );
@@ -48,8 +51,10 @@ class FlutterFlipApp extends StatelessWidget {
 /// The [GameScreen] Widget represents the entire game
 /// display, from scores to board state and everything in between.
 class GameScreen extends StatefulWidget {
+  const GameScreen({super.key});
+
   @override
-  State createState() => _GameScreenState();
+  GameScreenState createState() => GameScreenState();
 }
 
 /// State class for [GameScreen].
@@ -58,14 +63,14 @@ class GameScreen extends StatefulWidget {
 /// Each move by the player or CPU results in a new [GameModel], which is
 /// sent downstream. [GameScreen] uses a [StreamBuilder] wired up to that stream
 /// of models to build out its [Widget] tree.
-class _GameScreenState extends State<GameScreen> {
+class GameScreenState extends State<GameScreen> {
   final StreamController<GameModel> _userMovesController =
       StreamController<GameModel>();
   final StreamController<GameModel> _restartController =
       StreamController<GameModel>();
   Stream<GameModel>? _modelStream;
 
-  _GameScreenState() {
+  GameScreenState() {
     // Below is the combination of streams that controls the flow of the game.
     // There are two streams of models produced by player interaction (either by
     // restarting the game, which produces a brand new game model and sends it
@@ -173,10 +178,10 @@ class _GameScreenState extends State<GameScreen> {
 
       for (var x = 0; x < GameBoard.width; x++) {
         spots.add(AnimatedContainer(
-          duration: Duration(
+          duration: const Duration(
             milliseconds: 500,
           ),
-          margin: EdgeInsets.all(1.0),
+          margin: const EdgeInsets.all(1.0),
           decoration: BoxDecoration(
             gradient:
                 Styling.pieceGradients[model.board.getPieceAtLocation(x, y)],
@@ -194,6 +199,7 @@ class _GameScreenState extends State<GameScreen> {
       }
 
       rows.add(Row(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: spots,
       ));
@@ -205,8 +211,8 @@ class _GameScreenState extends State<GameScreen> {
   // Builds out the Widget tree using the most recent GameModel from the stream.
   Widget _buildWidgets(BuildContext context, GameModel model) {
     return Container(
-      padding: EdgeInsets.only(top: 30.0, left: 15.0, right: 15.0),
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.only(top: 30.0, left: 15.0, right: 15.0),
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -217,64 +223,68 @@ class _GameScreenState extends State<GameScreen> {
         ),
       ),
       child: SafeArea(
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Spacer(flex: 1),
-                _buildScoreBox(PieceType.black, model),
-                Spacer(flex: 4),
-                _buildScoreBox(PieceType.white, model),
-                Spacer(flex: 1),
-              ],
-            ),
-            SizedBox(height: 20),
-            ThinkingIndicator(
-              color: Styling.thinkingColor,
-              height: Styling.thinkingSize,
-              visible: model.player == PieceType.white,
-            ),
-            SizedBox(height: 20),
-            ..._buildGameBoardDisplay(context, model),
-            SizedBox(height: 30),
-            if (model.gameIsOver)
-              Column(
+        child: FittedBox(
+          fit: BoxFit.fitHeight,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
-                    child: Text(
-                      model.gameResultString,
-                      style: Styling.resultText,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      _restartController.add(
-                        GameModel(board: GameBoard()),
-                      );
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                          border: Border.all(color: const Color(0xe0ffffff)),
-                          borderRadius:
-                              BorderRadius.all(const Radius.circular(15.0))),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 5.0,
-                        horizontal: 15.0,
+                  _buildScoreBox(PieceType.black, model),
+                  const SizedBox(width: 100),
+                  _buildScoreBox(PieceType.white, model),
+                ],
+              ),
+              const SizedBox(height: 20),
+              ThinkingIndicator(
+                color: Styling.thinkingColor,
+                height: Styling.thinkingSize,
+                visible: model.player == PieceType.white,
+              ),
+              const SizedBox(height: 20),
+              ..._buildGameBoardDisplay(context, model),
+              const SizedBox(height: 30),
+              if (model.gameIsOver)
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
+                      child: Text(
+                        model.gameResultString,
+                        style: Styling.resultText,
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 4.0),
-                        child: Text(
-                          'new game',
-                          style: Styling.buttonText,
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        _restartController.add(
+                          GameModel(board: GameBoard()),
+                        );
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                            border: Border.all(color: const Color(0xe0ffffff)),
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(15.0))),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 5.0,
+                          horizontal: 15.0,
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.only(bottom: 4.0),
+                          child: Text(
+                            'new game',
+                            style: Styling.buttonText,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-          ],
+                  ],
+                ),
+            ],
+          ),
         ),
       ),
     );

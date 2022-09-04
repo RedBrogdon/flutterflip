@@ -36,7 +36,7 @@ class GameModel {
   /// returned. If unsuccessful, null is returned.
   GameModel updateForMove(int x, int y) {
     if (!board.isLegalMove(x, y, player)) {
-      return null!;
+      throw Exception('Attempted to update board with an illegal move.');
     }
 
     final newBoard = board.updateForMove(x, y, player);
