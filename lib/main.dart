@@ -208,6 +208,42 @@ class GameScreenState extends State<GameScreen> {
     return rows;
   }
 
+  Opacity _buildGameResult(GameModel model) {
+    return Opacity(
+      opacity: model.gameIsOver ? 1 : 0,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            model.gameResultString,
+            style: Styling.resultText,
+          ),
+          const SizedBox(height: 30),
+          GestureDetector(
+            onTap: () {
+              _restartController.add(
+                GameModel(board: GameBoard()),
+              );
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xe0ffffff)),
+                borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+              ),
+              child: const Padding(
+                padding: EdgeInsets.fromLTRB(15, 5, 15, 9),
+                child: Text(
+                  'new game',
+                  style: Styling.buttonText,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // Builds out the Widget tree using the most recent GameModel from the stream.
   Widget _buildWidgets(BuildContext context, GameModel model) {
     return Container(
@@ -246,40 +282,8 @@ class GameScreenState extends State<GameScreen> {
               const SizedBox(height: 20),
               ..._buildGameBoardDisplay(context, model),
               const SizedBox(height: 30),
-              Opacity(
-                opacity: model.gameIsOver ? 1 : 0,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      model.gameResultString,
-                      style: Styling.resultText,
-                    ),
-                    const SizedBox(height: 30),
-                    GestureDetector(
-                      onTap: () {
-                        _restartController.add(
-                          GameModel(board: GameBoard()),
-                        );
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: const Color(0xe0ffffff)),
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(15.0)),
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.fromLTRB(15, 5, 15, 9),
-                          child: Text(
-                            'new game',
-                            style: Styling.buttonText,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _buildGameResult(model),
+              const SizedBox(height: 30),
             ],
           ),
         ),
