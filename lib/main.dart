@@ -246,17 +246,16 @@ class GameScreenState extends State<GameScreen> {
               const SizedBox(height: 20),
               ..._buildGameBoardDisplay(context, model),
               const SizedBox(height: 30),
-              if (model.gameIsOver)
-                Column(
+              Opacity(
+                opacity: model.gameIsOver ? 1 : 0,
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
-                      child: Text(
-                        model.gameResultString,
-                        style: Styling.resultText,
-                      ),
+                    Text(
+                      model.gameResultString,
+                      style: Styling.resultText,
                     ),
+                    const SizedBox(height: 30),
                     GestureDetector(
                       onTap: () {
                         _restartController.add(
@@ -265,15 +264,12 @@ class GameScreenState extends State<GameScreen> {
                       },
                       child: Container(
                         decoration: BoxDecoration(
-                            border: Border.all(color: const Color(0xe0ffffff)),
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(15.0))),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 5.0,
-                          horizontal: 15.0,
+                          border: Border.all(color: const Color(0xe0ffffff)),
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(15.0)),
                         ),
                         child: const Padding(
-                          padding: EdgeInsets.only(bottom: 4.0),
+                          padding: EdgeInsets.fromLTRB(15, 5, 15, 9),
                           child: Text(
                             'new game',
                             style: Styling.buttonText,
@@ -283,6 +279,7 @@ class GameScreenState extends State<GameScreen> {
                     ),
                   ],
                 ),
+              ),
             ],
           ),
         ),
