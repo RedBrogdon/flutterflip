@@ -18,9 +18,9 @@ joined the team in the spring of 2018, and it's intended to be an open
 source example. The tech used includes:
 
 * [Streams](https://www.dartlang.org/tutorials/language/streams)!
-* Dart [Isolates](https://api.dartlang.org/stable/1.24.3/dart-isolate/dart-isolate-library.html)
-* Implicit animations like [AnimatedOpacity](https://docs.flutter.io/flutter/widgets/AnimatedOpacity-class.html)
-  and [AnimatedContainer](https://docs.flutter.io/flutter/widgets/AnimatedContainer-class.html).
+* Dart [Isolates](https://api.dart.dev/stable/2.18.0/dart-isolate/dart-isolate-library.html)
+* Implicit animations like [AnimatedOpacity](https://api.flutter.dev/flutter/widgets/AnimatedOpacity-class.html)
+  and [AnimatedContainer](https://api.flutter.dev/flutter/widgets/AnimatedContainer-class.html).
 
 If you spot a bug, feel free to file an issue report. You should also feel
 free to fork the repo and redo the UI into something snazzier. If you do,
