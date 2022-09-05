@@ -1,5 +1,7 @@
 # flutterflip
 
+[![Build Status](https://github.com/RedBrogdon/flutterflip/workflows/CI/badge.svg)](https://github.com/RedBrogdon/flutterflip/actions?workflow=CI)
+
 A single-player reversi clone built with [Flutter](https://flutter.io),
 which compiles for both Android and iOS. The user plays as black, and
 the CPU will make moves as white in response. The move search only goes
