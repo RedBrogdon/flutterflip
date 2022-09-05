@@ -6,7 +6,7 @@ A single-player reversi clone built with [Flutter](https://flutter.dev),
 which compiles for Android, iOS, web, macOS, Windows, and Linux.
 
 The user plays as black, and the CPU will make moves as white in response.
-The move search only goes 4-5 plies ahead, so it's not that sophisticated,
+The move search only goes 4-5 plies ahead, so it's not that sophisticated
 but puts up a reasonable fight.
 
 ![Screenshot](https://i.imgur.com/A96Hdcr.png)
@@ -24,4 +24,4 @@ source example. The tech used includes:
 
 If you spot a bug, feel free to file an issue report. You should also feel
 free to fork the repo and redo the UI into something snazzier. If you do,
-posta picture on Twitter!
+post a picture on Twitter!
