@@ -5,14 +5,16 @@
 enum PieceType {
   empty,
   black,
-  white,
-}
+  white;
 
-/// This method flips a black piece to a white one, and vice versa. I'm still
-/// unsure about having it as a global function, but don't know where else to
-/// put it.
-PieceType getOpponent(PieceType player) =>
-    (player == PieceType.black) ? PieceType.white : PieceType.black;
+  PieceType get opponent {
+    return switch (this) {
+      PieceType.black => PieceType.white,
+      PieceType.white => PieceType.black,
+      _ => PieceType.empty,
+    };
+  }
+}
 
 /// A position on the reversi board. Just an [x] and [y] coordinate pair.
 class Position {
@@ -143,7 +145,7 @@ class GameBoard {
       if (rows[curY][curX] == PieceType.empty) {
         // This path led to an empty spot rather than a legal move.
         return false;
-      } else if (rows[curY][curX] == getOpponent(player)) {
+      } else if (rows[curY][curX] == player.opponent) {
         // Update flag and keep going, hoping to hit one of player's pieces.
         foundOpponent = true;
       } else if (foundOpponent) {

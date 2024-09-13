@@ -42,8 +42,8 @@ class GameModel {
     final newBoard = board.updateForMove(x, y, player);
     PieceType nextPlayer;
 
-    if (newBoard.getMovesForPlayer(getOpponent(player)).isNotEmpty) {
-      nextPlayer = getOpponent(player);
+    if (newBoard.getMovesForPlayer(player.opponent).isNotEmpty) {
+      nextPlayer = player.opponent;
     } else if (newBoard.getMovesForPlayer(player).isNotEmpty) {
       nextPlayer = player;
     } else {

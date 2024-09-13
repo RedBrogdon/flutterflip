@@ -10,8 +10,11 @@ import 'game_board.dart';
 import 'game_board_scorer.dart';
 
 class MoveSearchArgs {
-  MoveSearchArgs(
-      {required this.board, required this.player, required this.numPlies});
+  MoveSearchArgs({
+    required this.board,
+    required this.player,
+    required this.numPlies,
+  });
 
   final GameBoard board;
   final PieceType player;
@@ -48,21 +51,19 @@ ScoredMove? _performSearchPly(
     return null;
   }
 
-  var score = (scoringPlayer == player)
-      ? GameBoardScorer.minScore
-      : GameBoardScorer.maxScore;
+  var score = (scoringPlayer == player) ? minScore : maxScore;
   ScoredMove? bestMove;
 
   for (var i = 0; i < availableMoves.length; i++) {
     final newBoard =
         board.updateForMove(availableMoves[i].x, availableMoves[i].y, player);
     if (pliesRemaining > 0 &&
-        newBoard.getMovesForPlayer(getOpponent(player)).isNotEmpty) {
+        newBoard.getMovesForPlayer(player.opponent).isNotEmpty) {
       // Opponent has next turn.
       score = _performSearchPly(
             newBoard,
             scoringPlayer,
-            getOpponent(player),
+            player.opponent,
             pliesRemaining - 1,
           )?.score ??
           0;

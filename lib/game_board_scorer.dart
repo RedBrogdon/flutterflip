@@ -4,6 +4,11 @@
 
 import 'game_board.dart';
 
+/// Maximum and minimum values for scores, which are used in the minimax
+/// algorithm in [MoveFinder].
+const maxScore = 1000 * 1000 * 1000;
+const minScore = -1 * maxScore;
+
 class GameBoardScorer {
   // Values for each position on the board.
   static const _positionValues = [
@@ -17,11 +22,6 @@ class GameBoardScorer {
     [10000, -1000, 100, 100, 100, 100, -1000, 10000],
   ];
 
-  /// Maximum and minimum values for scores, which are used in the minimax
-  /// algorithm in [MoveFinder].
-  static const maxScore = 1000 * 1000 * 1000;
-  static const minScore = -1 * maxScore;
-
   final GameBoard board;
 
   GameBoardScorer(this.board);
@@ -31,14 +31,14 @@ class GameBoardScorer {
   /// heuristic, but it's surprisingly effective.
   int getScore(PieceType player) {
     assert(player != PieceType.empty);
-    var opponent = getOpponent(player);
+    var opponent = player.opponent;
     var score = 0;
 
     if (board.getMovesForPlayer(PieceType.black).isEmpty &&
         board.getMovesForPlayer(PieceType.white).isEmpty) {
       // Game is over.
       var playerCount = board.getPieceCount(player);
-      var opponentCount = board.getPieceCount(getOpponent(player));
+      var opponentCount = board.getPieceCount(player.opponent);
 
       if (playerCount > opponentCount) {
         return maxScore;

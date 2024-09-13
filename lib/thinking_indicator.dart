@@ -29,10 +29,6 @@ class _ThinkingIndicatorState
     extends AnimatedWidgetBaseState<ThinkingIndicator> {
   Tween<double>? _opacityTween;
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
