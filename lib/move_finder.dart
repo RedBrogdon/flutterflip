@@ -33,7 +33,11 @@ class ScoredMove {
 // This is that method for [MoveFinder].
 Position? _findNextMove(MoveSearchArgs args) {
   final bestMove = _performSearchPly(
-      args.board, args.player, args.player, args.numPlies - 1);
+    args.board,
+    args.player,
+    args.player,
+    args.numPlies - 1,
+  );
   return bestMove?.move;
 }
 
@@ -55,12 +59,16 @@ ScoredMove? _performSearchPly(
   ScoredMove? bestMove;
 
   for (var i = 0; i < availableMoves.length; i++) {
-    final newBoard =
-        board.updateForMove(availableMoves[i].x, availableMoves[i].y, player);
+    final newBoard = board.updateForMove(
+      availableMoves[i].x,
+      availableMoves[i].y,
+      player,
+    );
     if (pliesRemaining > 0 &&
         newBoard.getMovesForPlayer(player.opponent).isNotEmpty) {
       // Opponent has next turn.
-      score = _performSearchPly(
+      score =
+          _performSearchPly(
             newBoard,
             scoringPlayer,
             player.opponent,
@@ -70,7 +78,8 @@ ScoredMove? _performSearchPly(
     } else if (pliesRemaining > 0 &&
         newBoard.getMovesForPlayer(player).isNotEmpty) {
       // Opponent has no moves; player gets another turn.
-      score = _performSearchPly(
+      score =
+          _performSearchPly(
             newBoard,
             scoringPlayer,
             player,
@@ -85,8 +94,10 @@ ScoredMove? _performSearchPly(
     if (bestMove == null ||
         (score > bestMove.score && scoringPlayer == player) ||
         (score < bestMove.score && scoringPlayer != player)) {
-      bestMove =
-          ScoredMove(score, Position(availableMoves[i].x, availableMoves[i].y));
+      bestMove = ScoredMove(
+        score,
+        Position(availableMoves[i].x, availableMoves[i].y),
+      );
     }
   }
 
@@ -107,11 +118,7 @@ class MoveFinder {
   Future<Position?> findNextMove(PieceType player, int numPlies) {
     return compute(
       _findNextMove,
-      MoveSearchArgs(
-        board: initialBoard,
-        player: player,
-        numPlies: numPlies,
-      ),
+      MoveSearchArgs(board: initialBoard, player: player, numPlies: numPlies),
     );
   }
 }

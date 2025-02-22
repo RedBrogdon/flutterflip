@@ -19,26 +19,17 @@ abstract class Styling {
     PieceType.black: LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: [
-        Color(0xff101010),
-        Color(0xff303030),
-      ],
+      colors: [Color(0xff101010), Color(0xff303030)],
     ),
     PieceType.white: LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: [
-        Color(0xffffffff),
-        Color(0xffe0e0e0),
-      ],
+      colors: [Color(0xffffffff), Color(0xffe0e0e0)],
     ),
     PieceType.empty: LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: [
-        Color(0x60ffffff),
-        Color(0x40ffffff),
-      ],
+      colors: [Color(0x60ffffff), Color(0x40ffffff)],
     ),
   };
 
@@ -89,20 +80,10 @@ abstract class Styling {
   // **** BOXES ****
 
   static const activePlayerIndicator = BoxDecoration(
-    border: Border(
-      bottom: BorderSide(
-        width: 2.0,
-        color: Color(0xffffffff),
-      ),
-    ),
+    border: Border(bottom: BorderSide(width: 2.0, color: Color(0xffffffff))),
   );
 
   static const inactivePlayerIndicator = BoxDecoration(
-    border: Border(
-      bottom: BorderSide(
-        width: 2.0,
-        color: Color(0x00000000),
-      ),
-    ),
+    border: Border(bottom: BorderSide(width: 2.0, color: Color(0x00000000))),
   );
 }

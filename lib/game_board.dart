@@ -40,7 +40,7 @@ class GameBoard {
 
   /// Copy constructor.
   GameBoard.fromGameBoard(GameBoard other)
-      : rows = List.generate(height, (i) => List.from(other.rows[i]));
+    : rows = List.generate(height, (i) => List.from(other.rows[i]));
 
   /// Retrieves the type of piece at a location on the game board.
   PieceType getPieceAtLocation(int x, int y) {
@@ -51,10 +51,7 @@ class GameBoard {
 
   /// Gets the total number of pieces of a particular type.
   int getPieceCount(PieceType pieceType) {
-    return rows.fold(
-      0,
-      (s, e) => s + e.where((e) => e == pieceType).length,
-    );
+    return rows.fold(0, (s, e) => s + e.where((e) => e == pieceType).length);
   }
 
   /// Calculates the list of available moves on this board for a player. These
@@ -136,7 +133,13 @@ class GameBoard {
   // to true, the pieces are flipped in place to their new colors before the
   // method returns.
   bool _traversePath(
-      int x, int y, int dx, int dy, PieceType player, bool flip) {
+    int x,
+    int y,
+    int dx,
+    int dy,
+    PieceType player,
+    bool flip,
+  ) {
     var foundOpponent = false;
     var curX = x + dx;
     var curY = y + dy;

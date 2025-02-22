@@ -10,10 +10,7 @@ class GameModel {
   late final GameBoard board;
   final PieceType player;
 
-  GameModel({
-    required this.board,
-    this.player = PieceType.black,
-  });
+  GameModel({required this.board, this.player = PieceType.black});
 
   int get blackScore => board.getPieceCount(PieceType.black);
 

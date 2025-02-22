@@ -17,9 +17,7 @@ class ThinkingIndicator extends ImplicitlyAnimatedWidget {
     this.height = 10.0,
     this.visible = true,
     super.key,
-  }) : super(
-          duration: Styling.thinkingFadeDuration,
-        );
+  }) : super(duration: Styling.thinkingFadeDuration);
 
   @override
   ImplicitlyAnimatedWidgetState createState() => _ThinkingIndicatorState();
@@ -29,7 +27,6 @@ class _ThinkingIndicatorState
     extends AnimatedWidgetBaseState<ThinkingIndicator> {
   Tween<double>? _opacityTween;
 
-
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -37,12 +34,10 @@ class _ThinkingIndicatorState
         height: widget.height,
         child: Opacity(
           opacity: _opacityTween!.evaluate(animation),
-          child: _opacityTween!.evaluate(animation) != 0
-              ? AnimatedCircles(
-                  color: widget.color,
-                  height: widget.height,
-                )
-              : null,
+          child:
+              _opacityTween!.evaluate(animation) != 0
+                  ? AnimatedCircles(color: widget.color, height: widget.height)
+                  : null,
         ),
       ),
     );
@@ -50,11 +45,13 @@ class _ThinkingIndicatorState
 
   @override
   void forEachTween(visitor) {
-    _opacityTween = visitor(
-      _opacityTween,
-      widget.visible ? 1.0 : 0.0,
-      (dynamic value) => Tween<double>(begin: value as double),
-    ) as Tween<double>?;
+    _opacityTween =
+        visitor(
+              _opacityTween,
+              widget.visible ? 1.0 : 0.0,
+              (dynamic value) => Tween<double>(begin: value as double),
+            )
+            as Tween<double>?;
   }
 }
 
@@ -62,11 +59,7 @@ class AnimatedCircles extends StatefulWidget {
   final Color color;
   final double height;
 
-  const AnimatedCircles({
-    required this.color,
-    required this.height,
-    super.key,
-  });
+  const AnimatedCircles({required this.color, required this.height, super.key});
 
   @override
   AnimatedCirclesState createState() => AnimatedCirclesState();
@@ -81,15 +74,17 @@ class AnimatedCirclesState extends State<AnimatedCircles>
   void initState() {
     super.initState();
     _thinkingController = AnimationController(
-        duration: const Duration(milliseconds: 500), vsync: this)
-      ..addStatusListener((status) {
-        // This bit ensures that the animation reverses course rather than
-        // stopping.
-        if (status == AnimationStatus.completed) _thinkingController.reverse();
-        if (status == AnimationStatus.dismissed) _thinkingController.forward();
-      });
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    )..addStatusListener((status) {
+      // This bit ensures that the animation reverses course rather than
+      // stopping.
+      if (status == AnimationStatus.completed) _thinkingController.reverse();
+      if (status == AnimationStatus.dismissed) _thinkingController.forward();
+    });
     _thinkingAnimation = Tween(begin: 0.0, end: widget.height).animate(
-        CurvedAnimation(parent: _thinkingController, curve: Curves.easeOut));
+      CurvedAnimation(parent: _thinkingController, curve: Curves.easeOut),
+    );
     _thinkingController.forward();
   }
 
@@ -104,10 +99,7 @@ class AnimatedCirclesState extends State<AnimatedCircles>
       width: widget.height,
       height: widget.height,
       decoration: BoxDecoration(
-        border: Border.all(
-          color: widget.color,
-          width: 2.0,
-        ),
+        border: Border.all(color: widget.color, width: 2.0),
         borderRadius: const BorderRadius.all(Radius.circular(5.0)),
       ),
     );

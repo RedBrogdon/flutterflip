@@ -40,8 +40,8 @@ class FlutterFlipApp extends StatelessWidget {
       onGenerateRoute: (settings) {
         return PageRouteBuilder<dynamic>(
           settings: settings,
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              const GameScreen(),
+          pageBuilder:
+              (context, animation, secondaryAnimation) => const GameScreen(),
         );
       },
     );
@@ -145,14 +145,16 @@ class GameScreenState extends State<GameScreen> {
 
   Widget _buildScoreBox(PieceType player, GameModel model) {
     var label = player == PieceType.black ? 'black' : 'white';
-    var scoreText = player == PieceType.black
-        ? '${model.blackScore}'
-        : '${model.whiteScore}';
+    var scoreText =
+        player == PieceType.black
+            ? '${model.blackScore}'
+            : '${model.whiteScore}';
 
     return DecoratedBox(
-      decoration: (model.player == player)
-          ? Styling.activePlayerIndicator
-          : Styling.inactivePlayerIndicator,
+      decoration:
+          (model.player == player)
+              ? Styling.activePlayerIndicator
+              : Styling.inactivePlayerIndicator,
       child: Column(
         children: <Widget>[
           Text(
@@ -164,7 +166,7 @@ class GameScreenState extends State<GameScreen> {
             scoreText,
             textAlign: TextAlign.center,
             style: Styling.scoreText,
-          )
+          ),
         ],
       ),
     );
@@ -177,32 +179,34 @@ class GameScreenState extends State<GameScreen> {
       final spots = <Widget>[];
 
       for (var x = 0; x < GameBoard.width; x++) {
-        spots.add(AnimatedContainer(
-          duration: const Duration(
-            milliseconds: 500,
-          ),
-          margin: const EdgeInsets.all(1.0),
-          decoration: BoxDecoration(
-            gradient:
-                Styling.pieceGradients[model.board.getPieceAtLocation(x, y)],
-          ),
-          child: SizedBox(
-            width: 40.0,
-            height: 40.0,
-            child: GestureDetector(
-              onTap: () {
-                _attemptUserMove(model, x, y);
-              },
+        spots.add(
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 500),
+            margin: const EdgeInsets.all(1.0),
+            decoration: BoxDecoration(
+              gradient:
+                  Styling.pieceGradients[model.board.getPieceAtLocation(x, y)],
+            ),
+            child: SizedBox(
+              width: 40.0,
+              height: 40.0,
+              child: GestureDetector(
+                onTap: () {
+                  _attemptUserMove(model, x, y);
+                },
+              ),
             ),
           ),
-        ));
+        );
       }
 
-      rows.add(Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: spots,
-      ));
+      rows.add(
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: spots,
+        ),
+      );
     }
 
     return rows;
@@ -214,16 +218,11 @@ class GameScreenState extends State<GameScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            model.gameResultString,
-            style: Styling.resultText,
-          ),
+          Text(model.gameResultString, style: Styling.resultText),
           const SizedBox(height: 30),
           GestureDetector(
             onTap: () {
-              _restartController.add(
-                GameModel(board: GameBoard()),
-              );
+              _restartController.add(GameModel(board: GameBoard()));
             },
             child: Container(
               decoration: BoxDecoration(
@@ -232,10 +231,7 @@ class GameScreenState extends State<GameScreen> {
               ),
               child: const Padding(
                 padding: EdgeInsets.fromLTRB(15, 5, 15, 9),
-                child: Text(
-                  'new game',
-                  style: Styling.buttonText,
-                ),
+                child: Text('new game', style: Styling.buttonText),
               ),
             ),
           ),
@@ -252,10 +248,7 @@ class GameScreenState extends State<GameScreen> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Styling.backgroundStartColor,
-            Styling.backgroundFinishColor,
-          ],
+          colors: [Styling.backgroundStartColor, Styling.backgroundFinishColor],
         ),
       ),
       child: SafeArea(
