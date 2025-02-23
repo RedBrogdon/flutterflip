@@ -101,7 +101,17 @@ class GameScreenState extends State<GameScreen> {
 
       while (newModel.player == PieceType.white) {
         final finder = MoveFinder(newModel.board);
-        final move = await finder.findNextMove(newModel.player, 5);
+        final moveFuture = finder.findNextMove(newModel.player, 5);
+
+        // Guarantee the move takes at least a second to arrive, giving the UI
+        // a chance to animate for each move.
+        final result = await Future.wait([
+          moveFuture,
+          Future.delayed(Duration(seconds: 1)),
+        ]);
+
+        final move = result[0] as Position?;
+
         if (move != null) {
           newModel = newModel.updateForMove(move.x, move.y);
           yield newModel;
